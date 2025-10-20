@@ -71,7 +71,7 @@ router.post("/auth/login", async (req, res) => {
     req.session.token = token;
     req.session.user = user; // ✅ Cho phép dùng user trong EJS như navbar
 
-    res.redirect("/listFeatureFood");
+    res.redirect("/listFeatureClothes");
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).send("Login failed");

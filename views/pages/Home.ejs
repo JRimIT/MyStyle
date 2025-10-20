@@ -1,0 +1,101 @@
+<%- include('../partials/header.ejs') %>
+
+<div class="bodyHome">
+  <!-- Navbar -->
+  <%- include('../partials/navbar.ejs') %>
+
+  <!-- Slideshow Banner -->
+  <div
+    id="carouselExampleIndicators"
+    class="carousel slide mt-5"
+    data-bs-ride="carousel"
+  >
+    <div class="carousel-inner">
+      <div class="carousel-item active" data-aos="fade-up">
+        <img
+          src="https://i.pinimg.com/1200x/19/ac/6b/19ac6b36858ef797e14e391a0620e6b9.jpg"
+          class="d-block w-100"
+          alt="Banner1"
+        />
+      </div>
+      <div class="carousel-item" data-aos="fade-up">
+        <img
+          src="https://i.pinimg.com/736x/8b/29/6c/8b296c7735232fa1cbc69e415ac7c25b.jpg"
+          class="d-block w-100"
+          alt="Banner2"
+        />
+      </div>
+      <div class="carousel-item" data-aos="fade-up">
+        <img
+          src="https://i.pinimg.com/1200x/ff/16/43/ff1643b86cb6220c5f4dd2c891875ebe.jpg"
+          class="d-block w-100"
+          alt="Banner3"
+        />
+      </div>
+    </div>
+    <button
+      class="carousel-control-prev"
+      type="button"
+      data-bs-target="#carouselExampleIndicators"
+      data-bs-slide="prev"
+    >
+      <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button
+      class="carousel-control-next"
+      type="button"
+      data-bs-target="#carouselExampleIndicators"
+      data-bs-slide="next"
+    >
+      <span class="carousel-control-next-icon"></span>
+    </button>
+  </div>
+
+  <!-- Product Section -->
+  <div class="products-section" data-aos="fade-up">
+    <h2 class="text-center mb-5">Popular Clothes</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+      <% listFeatureFood.forEach(clothes => {%>
+      <div class="col" data-aos="zoom-in">
+        <div class="card h-100">
+          <img src="<%= clothes.imageUrl%>" alt="<%= clothes.name %>" />
+          <div class="card-body text-center">
+            <h5 class="card-title"><%= clothes.name %></h5>
+            <p class="card-text">
+              <%= clothes.price.toLocaleString('vi-VN') %> VND
+            </p>
+            <div class="d-flex justify-content-center align-items-center mb-2">
+              <input
+                type="number"
+                min="1"
+                value="1"
+                class="form-control me-2"
+                style="width: 70px"
+                id="order-qty-<%= clothes._id %>"
+              />
+              <button
+                class="btn btn-order"
+                onclick="orderNow('<%= clothes._id %>')"
+              >
+                Order Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%}) %>
+    </div>
+  </div>
+</div>
+
+  <%- include('../partials/footer.ejs') %>
+
+  <script>
+    function orderNow(productId) {
+      var qtyInput = document.getElementById("order-qty-" + productId);
+      var quantity = qtyInput ? qtyInput.value : 1;
+      window.location.href = `/order/${productId}?quantity=${quantity}`;
+    }
+  </script>
+</div>

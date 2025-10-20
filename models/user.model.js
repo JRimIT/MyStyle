@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  balance: { type: Number, default: 500000 }, // Số dư ví nội bộ
+  balance: { type: Number, default: 50000 }, // Số dư ví nội bộ
 });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

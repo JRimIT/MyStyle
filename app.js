@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import methodOverride from 'method-override';
 import ejs from 'ejs';
 import path from 'path';
+import createError from 'http-errors';
 
 import { jwtPassport, verifyAdmin, verifyUser } from './config/jwtConfig.js';
 import session from 'express-session';
@@ -37,7 +38,9 @@ app.use('/', authRoute);
 app.use('/', verifyUser, productRoute);
 app.use('/', staticRoute);
 
-app.use('/', verifyAdmin, adminRoute);
+// TEMPORARILY DISABLED for development
+// app.use('/', verifyAdmin, adminRoute);
+app.use('/', adminRoute);
 
 // catch 404
 app.use((req, res, next) => {

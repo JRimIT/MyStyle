@@ -7,6 +7,7 @@ const productSchema = new mongoose.Schema({
   price: Number,
   imageUrl: String,
   category: String,
+  sizes: [String],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
   createdAt: { type: Date, default: Date.now },
 });

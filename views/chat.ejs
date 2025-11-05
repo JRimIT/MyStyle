@@ -1,0 +1,14 @@
+<!doctype html><html><body>
+<h3>Chat Box</h3>
+<div id="log" style="border:1px solid #ccc; height:200px; overflow:auto;"></div>
+<input id="msg" placeholder="Type message...">
+<button onclick="send()">Send</button>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  const log = document.getElementById('log');
+  socket.on('message', (m)=>{ log.innerHTML += '<div>'+m+'</div>'; log.scrollTop = log.scrollHeight; });
+  function send(){ socket.emit('message', document.getElementById('msg').value); document.getElementById('msg').value = '';}
+</script>
+<p><a href="/">Home</a></p>
+</body></html>

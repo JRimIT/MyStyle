@@ -1,0 +1,31 @@
+<!doctype html><html><body>
+<h3>Proceed to Checkout</h3>
+<form method="post" action="/checkout">
+  <input name="userId" value="user1" hidden>
+  Amount (VND): <input name="amount" value="100000"><br/>
+  <label><input type="radio" name="method" value="COD" checked> COD</label>
+  <label><input type="radio" name="method" value="VNPAY"> VNPay</label><br/>
+  <button>Place Order</button>
+</form>
+
+<hr/>
+<h4>Thanh toán VNPay (bước 2)</h4>
+<form onsubmit="payVNPay(event)">
+  OrderId: <input id="orderId" placeholder="nhập orderId sau khi tạo ở trên"><br/>
+  <button>Get payUrl & Redirect</button>
+</form>
+<script>
+async function payVNPay(e){
+  e.preventDefault();
+  const orderId = document.getElementById('orderId').value.trim();
+  const res = await fetch('/payment/vnpay',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({orderId})});
+  const j = await res.json();
+  if (j.payUrl) location.href = j.payUrl; else alert(JSON.stringify(j));
+}
+</script>
+
+<% if (typeof resultMsg !== 'undefined' && resultMsg) { %>
+  <p><b><%= resultMsg %></b></p>
+<% } %>
+<p><a href="/">Home</a></p>
+</body></html>

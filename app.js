@@ -13,6 +13,7 @@ import authRoute from './routes/auth.route.js';
 import productRoute from './routes/product.route.js';
 import adminRoute from './routes/admin.route.js';
 import staticRoute from './routes/static.route.js';
+import contactRoutes from './routes/contact.route.js';
 
 import { connectToMongoDB } from './db/connectToMongoDB.js';
 
@@ -37,6 +38,7 @@ app.get('/', async (req, res) => {
 app.use('/', authRoute);
 app.use('/', verifyUser, productRoute);
 app.use('/', staticRoute);
+app.use('/', contactRoutes);
 
 // TEMPORARILY DISABLED for development
 // app.use('/', verifyAdmin, adminRoute);

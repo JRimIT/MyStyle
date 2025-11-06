@@ -51,12 +51,20 @@
     </button>
   </div>
 
+
+
   <!-- Product Section -->
   <div class="products-section" data-aos="fade-up">
     <h2 class="text-center mb-5">Popular Clothes</h2>
-    <div class="row row-cols-1 row-cols-md-3 g-4">
+    <div id="noResults" class="text-center text-muted mb-4" style="display: none;">
+      <p>Không tìm thấy sản phẩm nào phù hợp với từ khóa của bạn.</p>
+    </div>
+    <div class="row row-cols-1 row-cols-md-3 g-4" id="productGrid">
       <% listFeatureFood.forEach(clothes => {%>
-      <div class="col" data-aos="zoom-in">
+      <div class="col product-item" data-aos="zoom-in" 
+           data-name="<%= (clothes.name || '').toLowerCase() %>" 
+           data-category="<%= (clothes.category || '').toLowerCase() %>"
+           data-sizes="<%= (clothes.sizes || []).join(',') %>">
         <div class="card h-100">
           <img src="<%= clothes.imageUrl%>" alt="<%= clothes.name %>" />
           <div class="card-body text-center">
@@ -97,5 +105,9 @@
       var quantity = qtyInput ? qtyInput.value : 1;
       window.location.href = `/order/${productId}?quantity=${quantity}`;
     }
+
+    // Product order functionality
+    document.addEventListener('DOMContentLoaded', function() {
+    });
   </script>
 </div>

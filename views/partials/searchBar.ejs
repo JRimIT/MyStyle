@@ -1,0 +1,78 @@
+<!-- Search bar component -->
+<div class="d-flex search-bar me-4 position-relative" role="search">
+    <div class="input-group">
+        <input
+            class="form-control"
+            type="search"
+            name="search"
+            id="navbarSearch"
+            placeholder="Search clothes..."
+            aria-label="Search"
+        />
+        <button class="btn btn-danger" type="button" id="searchBtn">
+            <i class="fas fa-search"></i>
+        </button>
+        <button class="btn btn-outline-danger" type="button" id="navbarAdvancedSearch">
+            <i class="fas fa-sliders-h"></i>
+        </button>
+    </div>
+
+    <!-- Advanced Search Panel -->
+    <div class="advanced-search-panel card shadow-lg" style="display: none;">
+        <div class="card-body">
+            <h6 class="mb-3">Price Range</h6>
+            <div class="price-ranges">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="priceRange" id="price1" value="0-199000">
+                    <label class="form-check-label" for="price1">
+                        Dưới 199.000đ
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="priceRange" id="price2" value="199000-399000">
+                    <label class="form-check-label" for="price2">
+                        199.000đ - 399.000đ
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="priceRange" id="price3" value="399000-699000">
+                    <label class="form-check-label" for="price3">
+                        399.000đ - 699.000đ
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="priceRange" id="price4" value="699000-999000">
+                    <label class="form-check-label" for="price4">
+                        699.000đ - 999.000đ
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="priceRange" id="price5" value="999000-999999999">
+                    <label class="form-check-label" for="price5">
+                        Trên 999.000đ
+                    </label>
+                </div>
+            </div>
+
+            <h6 class="mb-3 mt-4">Size</h6>
+            <div class="size-filters">
+                <% const sizes = ['S', 'M', 'L', 'XL'];
+                sizes.forEach(size => { %>
+                    <label class="size-btn-wrapper">
+                        <input type="checkbox" 
+                            name="sizes" 
+                            value="<%= size %>" 
+                            id="size<%= size %>"
+                            class="size-checkbox">
+                        <span class="size-btn"><%= size %></span>
+                    </label>
+                <% }); %>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="navbarClearSearch">Clear All</button>
+                <button type="button" class="btn btn-sm btn-danger" id="applyFilters">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -5,6 +5,8 @@ import ejs from 'ejs';
 import path from 'path';
 import createError from 'http-errors';
 
+
+
 import { jwtPassport, verifyAdmin, verifyUser } from './config/jwtConfig.js';
 import session from 'express-session';
 import sessionConfig from './config/sessionConfig.js';
@@ -15,7 +17,6 @@ import adminRoute from './routes/admin.route.js';
 import staticRoute from './routes/static.route.js';
 import contactRoutes from './routes/contact.route.js';
 
-import { connectToMongoDB } from './db/connectToMongoDB.js';
 
 const app = express();
 app.use(express.static('public'));
@@ -58,9 +59,3 @@ app.use((err, req, res, next) => {
 });
 
 export default app;
-// Server start
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-    connectToMongoDB();
-    console.log(`Server started on port http://localhost:${PORT}`);
-});

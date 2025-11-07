@@ -53,8 +53,115 @@
 
 
 
+  <!-- Categories Section -->
+  <%- include('../partials/categoryFilter.ejs') %>
+
   <!-- Product Section -->
   <div class="products-section" data-aos="fade-up">
+    <!-- Product Header -->
+    <div class="product-header mb-5">
+      <div class="row align-items-center">
+        <div class="col-lg-6 text-center text-lg-start mb-4 mb-lg-0">
+          <h1 class="product-main-title">
+            <i class="fas fa-store"></i> Our Collection
+          </h1>
+          <p class="product-subtitle">Khám phá bộ sưu tập thời trang độc đáo và phong cách</p>
+        </div>
+        <div class="col-lg-6">
+          <div class="product-stats d-flex justify-content-center justify-content-lg-end gap-4">
+            <div class="stat-item">
+              <i class="fas fa-tshirt"></i>
+              <span class="stat-number" id="totalProducts"><%= listFeatureFood.length %></span>
+              <span class="stat-label">Sản phẩm</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-tags"></i>
+              <span class="stat-number">5+</span>
+              <span class="stat-label">Danh mục</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-fire"></i>
+              <span class="stat-number">HOT</span>
+              <span class="stat-label">Xu hướng</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter and Sort Bar -->
+    <div class="filter-sort-bar mb-4">
+      <div class="row g-3">
+        <div class="col-lg-3 col-md-6">
+          <div class="filter-group">
+            <label class="filter-label"><i class="fas fa-list"></i> Danh mục</label>
+            <select class="form-select filter-select" id="categoryFilter">
+              <option value="">Tất cả</option>
+              <option value="áo">Áo</option>
+              <option value="quần">Quần</option>
+              <option value="váy">Váy</option>
+              <option value="phụ kiện">Phụ kiện</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <div class="filter-group">
+            <label class="filter-label"><i class="fas fa-ruler"></i> Kích thước</label>
+            <select class="form-select filter-select" id="sizeFilter">
+              <option value="">Tất cả</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <div class="filter-group">
+            <label class="filter-label"><i class="fas fa-dollar-sign"></i> Khoảng giá</label>
+            <select class="form-select filter-select" id="priceFilter">
+              <option value="">Tất cả</option>
+              <option value="0-200000">Dưới 200k</option>
+              <option value="200000-500000">200k - 500k</option>
+              <option value="500000-1000000">500k - 1tr</option>
+              <option value="1000000-999999999">Trên 1tr</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <div class="filter-group">
+            <label class="filter-label"><i class="fas fa-sort"></i> Sắp xếp</label>
+            <select class="form-select filter-select" id="sortFilter">
+              <option value="newest">Mới nhất</option>
+              <option value="price-asc">Giá tăng dần</option>
+              <option value="price-desc">Giá giảm dần</option>
+              <option value="name-asc">Tên A-Z</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col-12 text-center">
+          <button class="btn btn-clear-filter" id="clearFilters">
+            <i class="fas fa-redo"></i> Xóa bộ lọc
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sale Products Banner -->
+    <div class="sale-banner mb-5" data-aos="fade-up">
+      <div class="sale-banner-content">
+        <div class="sale-icon">
+          <i class="fas fa-fire"></i>
+        </div>
+        <div class="sale-text">
+          <h2>🔥 Khuyến mãi đặc biệt</h2>
+          <p>Giảm giá lên đến 50% - Nhanh tay kẻo hết!</p>
+        </div>
+      </div>
+    </div>
+
     <h2 class="text-center mb-5">Popular Clothes</h2>
     <div id="noResults" class="text-center text-muted mb-4" style="display: none;">
       <p>Không tìm thấy sản phẩm nào phù hợp với từ khóa của bạn.</p>
@@ -64,14 +171,41 @@
       <div class="col product-item" data-aos="zoom-in" 
            data-name="<%= (clothes.name || '').toLowerCase() %>" 
            data-category="<%= (clothes.category || '').toLowerCase() %>"
-           data-sizes="<%= (clothes.sizes || []).join(',') %>">
+           data-sizes="<%= (clothes.sizes || []).join(',') %>"
+           data-price="<%= clothes.price %>">
         <div class="card h-100">
-          <img src="<%= clothes.imageUrl%>" alt="<%= clothes.name %>" />
+          <div class="product-image-wrapper position-relative">
+            <img src="<%= clothes.imageUrl%>" alt="<%= clothes.name %>" />
+            <% if (clothes.isCurrentlyOnSale) { %>
+              <div class="sale-badge">
+                <% if (clothes.promotionLabel) { %>
+                  <%= clothes.promotionLabel %>
+                <% } else if (clothes.discount > 0) { %>
+                  -<%= Math.round(clothes.discount) %>%
+                <% } else if (clothes.discountAmount > 0) { %>
+                  Giảm <%= clothes.discountAmount.toLocaleString('vi-VN') %>đ
+                <% } else { %>
+                  <i class="fas fa-fire"></i> SALE
+                <% } %>
+              </div>
+            <% } %>
+          </div>
           <div class="card-body text-center">
             <h5 class="card-title"><%= clothes.name %></h5>
-            <p class="card-text">
-              <%= clothes.price.toLocaleString('vi-VN') %> VND
-            </p>
+            <div class="price-section">
+              <% if (clothes.isCurrentlyOnSale && clothes.originalDisplayPrice) { %>
+                <p class="original-price">
+                  <%= clothes.originalDisplayPrice.toLocaleString('vi-VN') %> VND
+                </p>
+                <p class="card-text sale-price">
+                  <%= clothes.displayPrice.toLocaleString('vi-VN') %> VND
+                </p>
+              <% } else { %>
+                <p class="card-text">
+                  <%= clothes.displayPrice.toLocaleString('vi-VN') %> VND
+                </p>
+              <% } %>
+            </div>
             <div class="d-flex justify-content-center align-items-center mb-2">
               <input
                 type="number"
@@ -83,9 +217,9 @@
               />
               <button
                 class="btn btn-order"
-                onclick="orderNow('<%= clothes._id %>')"
+                onclick="addToCart('<%= clothes._id %>', this)"
               >
-                Order Now
+                <i class="fas fa-cart-plus"></i> Thêm vào giỏ
               </button>
             </div>
           </div>
@@ -100,14 +234,170 @@
   <%- include('../partials/footer.ejs') %>
 
   <script>
-    function orderNow(productId) {
-      var qtyInput = document.getElementById("order-qty-" + productId);
-      var quantity = qtyInput ? qtyInput.value : 1;
-      window.location.href = `/order/${productId}?quantity=${quantity}`;
+    // Add to cart function
+    async function addToCart(productId, buttonElement) {
+      const qtyInput = document.getElementById("order-qty-" + productId);
+      const quantity = qtyInput ? parseInt(qtyInput.value) : 1;
+
+      if (quantity < 1) {
+        alert('Số lượng phải lớn hơn 0');
+        return;
+      }
+
+      try {
+        const response = await fetch('/cart/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            productId: productId,
+            quantity: quantity
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Show success message
+          const btn = buttonElement;
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> Đã thêm!';
+          btn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+          btn.disabled = true;
+          
+          // Update cart count in navbar
+          const cartBadge = document.querySelector('.cart-icon .badge');
+          if (cartBadge) {
+            cartBadge.textContent = result.cartCount;
+          }
+
+          // Reset button after 2 seconds
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.disabled = false;
+          }, 2000);
+        } else {
+          if (result.message && result.message.includes('token')) {
+            alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
+            window.location.href = '/login';
+          } else {
+            alert(result.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra. Vui lòng thử lại.');
+      }
     }
 
-    // Product order functionality
+    // Product filtering and sorting functionality
     document.addEventListener('DOMContentLoaded', function() {
+      const categoryFilter = document.getElementById('categoryFilter');
+      const sizeFilter = document.getElementById('sizeFilter');
+      const priceFilter = document.getElementById('priceFilter');
+      const sortFilter = document.getElementById('sortFilter');
+      const clearFiltersBtn = document.getElementById('clearFilters');
+      const productGrid = document.getElementById('productGrid');
+      const noResults = document.getElementById('noResults');
+      const totalProducts = document.getElementById('totalProducts');
+
+      function applyFilters() {
+        const category = categoryFilter.value.toLowerCase();
+        const size = sizeFilter.value.toUpperCase();
+        const priceRange = priceFilter.value;
+        const sort = sortFilter.value;
+
+        let products = Array.from(document.querySelectorAll('.product-item'));
+        let visibleCount = 0;
+
+        // Filter products
+        products.forEach(product => {
+          const productName = product.getAttribute('data-name');
+          const productCategory = product.getAttribute('data-category');
+          const productSizes = product.getAttribute('data-sizes').toUpperCase();
+          const productPrice = parseInt(product.getAttribute('data-price'));
+
+          let showProduct = true;
+
+          // Category filter
+          if (category && !productCategory.includes(category)) {
+            showProduct = false;
+          }
+
+          // Size filter
+          if (size && !productSizes.includes(size)) {
+            showProduct = false;
+          }
+
+          // Price filter
+          if (priceRange) {
+            const [min, max] = priceRange.split('-').map(Number);
+            if (productPrice < min || productPrice > max) {
+              showProduct = false;
+            }
+          }
+
+          if (showProduct) {
+            product.style.display = 'block';
+            visibleCount++;
+          } else {
+            product.style.display = 'none';
+          }
+        });
+
+        // Sort products
+        const visibleProducts = products.filter(p => p.style.display !== 'none');
+        
+        visibleProducts.sort((a, b) => {
+          const priceA = parseInt(a.getAttribute('data-price'));
+          const priceB = parseInt(b.getAttribute('data-price'));
+          const nameA = a.getAttribute('data-name');
+          const nameB = b.getAttribute('data-name');
+
+          switch(sort) {
+            case 'price-asc':
+              return priceA - priceB;
+            case 'price-desc':
+              return priceB - priceA;
+            case 'name-asc':
+              return nameA.localeCompare(nameB);
+            case 'newest':
+            default:
+              return 0;
+          }
+        });
+
+        // Reorder in DOM
+        visibleProducts.forEach(product => {
+          productGrid.appendChild(product);
+        });
+
+        // Show/hide no results message
+        if (visibleCount === 0) {
+          noResults.style.display = 'block';
+        } else {
+          noResults.style.display = 'none';
+        }
+
+        // Update total count
+        totalProducts.textContent = visibleCount;
+      }
+
+      // Event listeners
+      categoryFilter.addEventListener('change', applyFilters);
+      sizeFilter.addEventListener('change', applyFilters);
+      priceFilter.addEventListener('change', applyFilters);
+      sortFilter.addEventListener('change', applyFilters);
+
+      clearFiltersBtn.addEventListener('click', function() {
+        categoryFilter.value = '';
+        sizeFilter.value = '';
+        priceFilter.value = '';
+        sortFilter.value = 'newest';
+        applyFilters();
+      });
     });
   </script>
 </div>

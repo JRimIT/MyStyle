@@ -58,9 +58,4 @@ app.use((err, req, res, next) => {
 });
 
 export default app;
-// Server start
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-    connectToMongoDB();
-    console.log(`Server started on port http://localhost:${PORT}`);
-});
+

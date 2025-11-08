@@ -6,8 +6,10 @@ const productSchema = new mongoose.Schema({
   description: String,
   price: Number,
   imageUrl: String,
+  images: [String],
   category: String,
   sizes: [String],
+  badges: [String],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
   createdAt: { type: Date, default: Date.now },
 });

@@ -1,118 +1,62 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const advancedSearchBtn = document.getElementById('navbarAdvancedSearch');
-    const advancedSearchPanel = document.querySelector('.advanced-search-panel');
-    const clearSearchBtn = document.getElementById('navbarClearSearch');
     const searchBtn = document.getElementById('searchBtn');
     const searchInput = document.getElementById('navbarSearch');
-    const applyFiltersBtn = document.getElementById('applyFilters');
     
-    // Function to filter products
-    function filterProducts(shouldClosePanel = false) {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedPriceRange = document.querySelector('input[name="priceRange"]:checked');
-        const selectedSizes = Array.from(document.querySelectorAll('input[name="sizes"]:checked')).map(cb => cb.value);
-        
-        // Get all product items from the Home page
-        const productItems = document.querySelectorAll('#productGrid .product-item');
-        let hasResults = false;
+    // Handle search function for all pages
+    async function handleSearch() {
+        const searchTerm = searchInput.value.trim();
+        if (!searchTerm) return;
 
-        productItems.forEach(item => {
-            let shouldShow = true;
+        try {
+            // Get current page path
+            const currentPath = window.location.pathname;
 
-            // Filter by search term
-            if (searchTerm) {
-                const productName = item.querySelector('.card-title').textContent.toLowerCase();
-                shouldShow = productName.includes(searchTerm);
+            // Redirect to menu page with search query if not already there
+            if (currentPath !== '/menu') {
+                window.location.href = `/menu?search=${encodeURIComponent(searchTerm)}`;
+                return;
             }
 
-            // Filter by price range
-            if (shouldShow && selectedPriceRange) {
-                const productPrice = parseInt(item.querySelector('.card-text').textContent.replace(/\D/g, ''));
-                const [minPrice, maxPrice] = selectedPriceRange.value.split('-').map(Number);
-                shouldShow = productPrice >= minPrice && productPrice <= maxPrice;
+            // If already on menu page, filter products directly
+            const productItems = document.querySelectorAll('.product-card');
+            let hasResults = false;
+
+            productItems.forEach(item => {
+                const productName = item.querySelector('.product-name').textContent.toLowerCase();
+                const shouldShow = productName.includes(searchTerm.toLowerCase());
+                item.closest('.col-lg-3').style.display = shouldShow ? '' : 'none';
+                if (shouldShow) hasResults = true;
+            });
+
+            // Show/hide no results message
+            const noResults = document.getElementById('noResults');
+            if (noResults) {
+                noResults.style.display = hasResults ? 'none' : 'block';
             }
 
-            // Filter by sizes
-            if (shouldShow && selectedSizes.length > 0) {
-                const productSizes = item.dataset.sizes ? item.dataset.sizes.split(',') : [];
-                shouldShow = selectedSizes.some(size => productSizes.includes(size));
-            }
-
-            // Show/hide the item
-            item.style.display = shouldShow ? '' : 'none';
-            if (shouldShow) hasResults = true;
-        });
-
-        // Show/hide no results message
-        const noResultsDiv = document.getElementById('noResults');
-        if (noResultsDiv) {
-            noResultsDiv.style.display = hasResults ? 'none' : 'block';
-        }
-
-        // Only close panel if explicitly requested (via Apply Filters button)
-        if (shouldClosePanel) {
-            advancedSearchPanel.style.display = 'none';
+        } catch (error) {
+            console.error('Search error:', error);
         }
     }
 
-    // Toggle advanced search panel
-    advancedSearchBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        advancedSearchPanel.style.display = advancedSearchPanel.style.display === 'none' ? 'block' : 'none';
-    });
+    // Handle search button click
+    searchBtn.addEventListener('click', handleSearch);
 
-    // Close panel when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!advancedSearchPanel.contains(e.target) && e.target !== advancedSearchBtn) {
-            advancedSearchPanel.style.display = 'none';
-        }
-    });
-
-    // Prevent panel close when clicking inside
-    advancedSearchPanel.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
-
-    // Clear all filters
-    clearSearchBtn.addEventListener('click', function() {
-        searchInput.value = '';
-        document.querySelectorAll('input[name="priceRange"]').forEach(radio => radio.checked = false);
-        document.querySelectorAll('input[name="sizes"]').forEach(checkbox => {
-            checkbox.checked = false;
-            checkbox.nextElementSibling.classList.remove('active');
-        });
-        filterProducts();
-    });
-
-    // Handle search input enter key
+    // Handle Enter key in search input
     searchInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            filterProducts();
+            handleSearch();
         }
     });
 
-    // Handle search button click
-    searchBtn.addEventListener('click', function() {
-        filterProducts();
-    });
-
-    // Handle apply filters button
-    applyFiltersBtn.addEventListener('click', function() {
-        filterProducts(true); // Pass true to close the panel after applying filters
-    });
-
-    // Handle price range changes
-    document.querySelectorAll('input[name="priceRange"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            filterProducts(false); // Don't close panel on price change
-        });
-    });
-
-    // Handle size changes
-    document.querySelectorAll('input[name="sizes"]').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            filterProducts(false); // Don't close panel on size change
-        });
-    });
+    // Check for search query parameter when loading menu page
+    if (window.location.pathname === '/menu') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQuery = urlParams.get('search');
+        if (searchQuery) {
+            searchInput.value = searchQuery;
+            handleSearch();
+        }
+    }
 });

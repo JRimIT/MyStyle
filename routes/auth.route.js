@@ -67,7 +67,7 @@ router.post("/auth/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "3h" }
     );
-
+    //const token = generateJWT(req.user);
     req.session.token = token;
     req.session.user = user; // ✅ Cho phép dùng user trong EJS như navbar
 
@@ -99,5 +99,40 @@ router.get(
     // res.json({ token }); // Gửi JWT về client
   }
 );
+// 🔥 ==== API LOGIN (dành cho Postman / frontend fetch) ====
 
+router.post("/api/auth/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await User.findOne({ username });
+    if (!user)
+      return res.status(404).json({ success: false, message: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(401).json({ success: false, message: "Invalid password" });
+
+    // Tạo token JWT
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "3h" }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    console.error("API Login error:", err);
+    return res.status(500).json({ success: false, message: "Login failed" });
+  }
+});
 export default router;

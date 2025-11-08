@@ -13,6 +13,7 @@ import sessionConfig from './config/sessionConfig.js';
 
 import authRoute from './routes/auth.route.js';
 import productRoute from './routes/product.route.js';
+import publicRoute from './routes/public.route.js';
 import adminRoute from './routes/admin.route.js';
 import staticRoute from './routes/static.route.js';
 
@@ -36,6 +37,9 @@ app.get('/', async (req, res) => {
 });
 
 app.use('/', authRoute);
+// public routes (no auth) - pages like /menu and product listing API
+app.use('/', publicRoute);
+
 app.use('/', verifyUser, productRoute);
 app.use('/', staticRoute);
 

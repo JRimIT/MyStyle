@@ -130,7 +130,7 @@ router.get("/admin/products", async (req, res) => {
       baseUrl,
       search,
       category,
-      active
+      active,
     });
   } catch (err) {
     console.error("GET /admin/products error:", err);

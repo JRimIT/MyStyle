@@ -40,8 +40,9 @@
 }
 
 .search-bar {
-  max-width: 600px;
+  max-width: 610px; /* slightly wider */
   position: relative;
+  margin-right: 1.5rem; /* more space between search and icons */
 }
 
 .search-bar .input-group {
@@ -231,7 +232,8 @@
 
 .cart-icon {
   position: relative;
-  margin-right: 18px;
+  margin-right: 2rem;
+  margin-top: 10px;
 }
 
 .cart-icon .fa-shopping-cart {

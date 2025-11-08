@@ -102,4 +102,53 @@ router.get("/listFeatureClothes", async (req, res) => {
   }
 });
 
+// Menu page - full collection with filters
+router.get('/menu', async (req, res) => {
+  try {
+    const products = await Product.find({}).sort({ createdAt: -1 }).select('name price images category sizes badges');
+    const cartCount = req.user ? await countProduct(req.user.userId) : 0;
+    let user = req.user;
+    if (req.user && req.user.userId) {
+      const User = (await import('../models/user.model.js')).default;
+      user = await User.findById(req.user.userId);
+    }
+    res.render('pages/Menu', { products, cartCount, user });
+  } catch (err) {
+    console.error('Error loading menu page', err);
+    res.status(500).send('Internal server error');
+  }
+});
+
+// API to return all products (used by client-side filtering)
+router.get('/api/products', async (req, res) => {
+  try {
+    const products = await Product.find({}).sort({ createdAt: -1 });
+    res.json(products);
+  } catch (err) {
+    console.error('Error returning products', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Product detail page
+router.get('/menu/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id).populate('reviews').lean();
+    if (!product) return res.status(404).render('error', { message: 'Product not found' });
+
+    const cartCount = req.user ? await countProduct(req.user.userId) : 0;
+    let user = req.user;
+    if (req.user && req.user.userId) {
+      const User = (await import('../models/user.model.js')).default;
+      user = await User.findById(req.user.userId);
+    }
+
+    res.render('pages/Product', { product, cartCount, user });
+  } catch (err) {
+    console.error('Error loading product detail', err);
+    res.status(500).send('Internal server error');
+  }
+});
+
 export default router;

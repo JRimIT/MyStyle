@@ -11,6 +11,7 @@ import { countProduct } from "../controllers/countCart.js";
 import Order from "../models/order.model.js";
 import multer from "multer";
 import path from "path";
+import { listProducts, getProduct } from "../controllers/productService.js";
 
 const router = express.Router();
 const axiosInstance = axios.create({
@@ -109,14 +110,33 @@ router.post("/admin/orders/update/:orderId", async (req, res) => {
 // Admin: List all products
 router.get("/admin/products", async (req, res) => {
   try {
-    const products = await Product.find({}).sort({ createdAt: -1 });
-    res.render("admins/manageProducts", { products });
-  } catch (error) {
-    console.error("Error /admin/products:", error);
-    res.status(500).json({ message: "Internal server error" });
+    const { page = 1, limit = 10, search = "", category = "", active } = req.query;
+
+    const result = await listProducts({ page, limit, search, category, active });
+
+    // baseUrl cho phân trang (không chứa page)
+    const qs = new URLSearchParams();
+    qs.set("limit", result.limit);
+    if (search) qs.set("search", search);
+    if (category) qs.set("category", category);
+    if (typeof active !== "undefined") qs.set("active", active);
+    const baseUrl = `/admin/products?${qs.toString()}`;
+
+    res.render("admins/manageProducts", {
+      products: result.products,
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      baseUrl,
+      search,
+      category,
+      active
+    });
+  } catch (err) {
+    console.error("GET /admin/products error:", err);
+    res.status(500).render("error", { message: "Failed to load products", error: err });
   }
 });
-
 // Admin: Show create product form
 router.get("/admin/products/create", (req, res) => {
   res.render("admins/createProduct");

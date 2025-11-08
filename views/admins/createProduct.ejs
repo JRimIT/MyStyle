@@ -1,0 +1,54 @@
+<%- include('../partials/header.ejs') %>
+<div class="bodyAdmin">
+  <%- include('../partials/navbar.ejs', { user: { role:'admin', name:'Admin' } }) %>
+
+  <div class="container mt-5 pt-5" style="max-width:860px">
+    <h2 class="mb-4">Create Product</h2>
+
+    <form action="/productCrud?redirect=/productCrud" method="POST" class="card p-4 shadow-sm">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Name *</label>
+          <input name="name" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Price *</label>
+          <input name="price" type="number" step="0.01" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Category</label>
+          <input name="category" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Image URL</label>
+          <input name="imageUrl" class="form-control" placeholder="https://... hoặc /uploads/...">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Description</label>
+          <input name="description" class="form-control" placeholder="mô tả ngắn">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Sizes (CSV)</label>
+          <input name="sizes" class="form-control" placeholder="S,M,L,XL">
+          <div class="form-text">Nhập các size, cách nhau bằng dấu phẩy. Service sẽ tự đổi thành mảng.</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Badges (CSV)</label>
+          <input name="badges" class="form-control" placeholder="hot,new,best-seller">
+          <div class="form-text">Nhập nhãn, cách nhau bằng dấu phẩy. Service sẽ tự đổi thành mảng.</div>
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Create</button>
+        <a class="btn btn-outline-secondary" href="/admin/products">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <%- include('../partials/footer.ejs') %>
+</div>

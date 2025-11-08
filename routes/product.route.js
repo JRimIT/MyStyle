@@ -18,7 +18,7 @@ router.get("/Home", (req, res) => {
 
 router.post("/api/createClothes", async (req, res) => {
   try {
-    const { name, description, price, imageUrl, category } = req.body;
+    const { name, description, price, imageUrl, category, sizes } = req.body;
 
     const product = await Product.create({
       name,
@@ -26,6 +26,7 @@ router.post("/api/createClothes", async (req, res) => {
       price,
       imageUrl,
       category,
+      sizes,
     });
     if (!product) {
       res.status(401).json({ message: "Fail to create Product" });
@@ -40,23 +41,99 @@ router.post("/api/createClothes", async (req, res) => {
 
 router.get("/listFeatureClothes", async (req, res) => {
   try {
-    const product = await Product.find()
-      .sort({ createdAt: -1 })
-      .limit(6)
-      .select("name price imageUrl category");
-    if (!product) {
-      res.status(200).json({ message: "Not have any products" });
+    const { search, priceRange, sizes } = req.query;
+    
+    // Build the filter object
+    let filter = {};
+    
+    // Search by name or category
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { category: { $regex: search, $options: 'i' } }
+      ];
     }
-    const cartCount = await countProduct(req.user.userId);
+
+    // Filter by price range
+    if (priceRange) {
+      const [min, max] = priceRange.split('-').map(Number);
+      filter.price = { $gte: min, $lte: max };
+    }
+
+    // Filter by sizes
+    if (sizes) {
+      const sizeArray = sizes.split(',');
+      filter.sizes = { $in: sizeArray };
+    }
+
+    const product = await Product.find(filter)
+      .sort({ createdAt: -1 })
+      .select("name price originalPrice discount discountAmount isOnSale saleStartDate saleEndDate promotionLabel imageUrl category sizes");
+    
+    // Calculate sale price for each product
+    const productsWithSalePrice = product.map((p) => {
+      const productObj = p.toObject();
+      let salePrice = p.price;
+      let isCurrentlyOnSale = false;
+      
+      // Check if product is currently on sale
+      if (p.isOnSale) {
+        const now = new Date();
+        const startValid = !p.saleStartDate || now >= p.saleStartDate;
+        const endValid = !p.saleEndDate || now <= p.saleEndDate;
+        isCurrentlyOnSale = startValid && endValid;
+        
+        if (isCurrentlyOnSale) {
+          if (p.discount > 0) {
+            const basePrice = p.originalPrice || p.price;
+            salePrice = basePrice * (1 - p.discount / 100);
+          } else if (p.discountAmount > 0) {
+            const basePrice = p.originalPrice || p.price;
+            salePrice = Math.max(0, basePrice - p.discountAmount);
+          }
+        }
+      }
+      
+      productObj.salePrice = Math.round(salePrice);
+      productObj.isCurrentlyOnSale = isCurrentlyOnSale;
+      productObj.displayPrice = isCurrentlyOnSale ? salePrice : p.price;
+      productObj.originalDisplayPrice = isCurrentlyOnSale ? (p.originalPrice || p.price) : null;
+      
+      return productObj;
+    });
+    
+    // Load categories
+    const Category = (await import("../models/category.model.js")).default;
+    const categories = await Category.find({ isActive: true })
+      .sort({ order: 1, name: 1 });
+    
+    if (!product || product.length === 0) {
+      return res.render("pages/Home", {
+        listFeatureFood: [],
+        categories: categories || [],
+        cartCount: req.user ? await countProduct(req.user.userId) : 0,
+        user: req.user,
+        search,
+        priceRange,
+        sizesFilter: sizes
+      });
+    }
+
+    const cartCount = req.user ? await countProduct(req.user.userId) : 0;
     let user = req.user;
     if (req.user && req.user.userId) {
       const User = (await import("../models/user.model.js")).default;
       user = await User.findById(req.user.userId);
     }
+    
     res.render("pages/Home", {
-      listFeatureFood: product,
+      listFeatureFood: productsWithSalePrice,
+      categories: categories || [],
       cartCount: cartCount,
       user,
+      search,
+      priceRange,
+      sizesFilter: sizes
     });
   } catch (error) {
     console.error("Error fetching Feature Clothes:", error);
@@ -65,3 +142,6 @@ router.get("/listFeatureClothes", async (req, res) => {
 });
 
 export default router;
+
+
+

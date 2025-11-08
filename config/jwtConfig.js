@@ -86,23 +86,36 @@ export const generateJWT = (user) => {
 
 // Middleware để dùng trực tiếp thay vì passport.authenticate('jwt')
 export const verifyUser = (req, res, next) => {
-  // console.log("Verify user token: ", req.session.token);
+  // Check if user is already set from session middleware
+  if (req.user && req.user.userId) {
+    return next();
+  }
 
   const authHeader =
-    req.headers["authorization"] || `Bearer ${req.session.token}`;
+    req.headers["authorization"] || (req.session?.token ? `Bearer ${req.session.token}` : null);
 
-  // console.log('Auth Header:', authHeader);
+  if (!authHeader) {
+    return res.status(403).json({ 
+      success: false,
+      message: "Vui lòng đăng nhập để sử dụng tính năng này!" 
+    });
+  }
 
-  const token = authHeader && authHeader.split(" ")[1]; // 'Bearer <token>'
+  const token = authHeader.split(" ")[1]; // 'Bearer <token>'
 
   if (!token) {
-    return res.status(403).json({ message: "No token provided!" });
+    return res.status(403).json({ 
+      success: false,
+      message: "Vui lòng đăng nhập để sử dụng tính năng này!" 
+    });
   }
-  // console.log("token verify: ", token);
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ message: "Invalid token!" });
+      return res.status(401).json({ 
+        success: false,
+        message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!" 
+      });
     }
     req.user = decoded;
     next();

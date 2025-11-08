@@ -1,0 +1,210 @@
+<%- include('../partials/header.ejs') %>
+<link rel="stylesheet" href="/css/Wallet.css" />
+
+<%- include('../partials/navbar.ejs') %>
+
+<div class="wallet-page">
+<div class="wallet-container">
+  <!-- Balance Card -->
+  <div class="balance-card" data-aos="fade-up">
+    <div class="text-center">
+      <div class="wallet-icon">
+        <i class="fas fa-wallet"></i>
+      </div>
+      <h3>Số dư hiện tại</h3>
+      <div class="balance-amount" id="currentBalance">
+        <%= user.balance ? user.balance.toLocaleString('vi-VN') : 0 %> VND
+      </div>
+      <p style="opacity: 0.9;">
+        <i class="fas fa-shield-alt"></i> Bảo mật & An toàn
+      </p>
+    </div>
+  </div>
+
+  <!-- Recharge Section -->
+  <div class="recharge-section" data-aos="fade-up" data-aos-delay="100">
+    <h2 class="recharge-title">
+      <i class="fas fa-credit-card"></i> Nạp tiền vào ví
+    </h2>
+
+    <form id="rechargeForm">
+      <!-- Amount Options -->
+      <div class="amount-options">
+        <div class="amount-option" data-amount="50000">
+          <span class="amount">50K</span>
+          <span class="bonus">Phổ biến</span>
+        </div>
+        <div class="amount-option" data-amount="100000">
+          <span class="amount">100K</span>
+          <span class="bonus">+5K bonus</span>
+        </div>
+        <div class="amount-option" data-amount="200000">
+          <span class="amount">200K</span>
+          <span class="bonus">+15K bonus</span>
+        </div>
+        <div class="amount-option" data-amount="500000">
+          <span class="amount">500K</span>
+          <span class="bonus">+50K bonus</span>
+        </div>
+        <div class="amount-option" data-amount="1000000">
+          <span class="amount">1M</span>
+          <span class="bonus">+120K bonus</span>
+        </div>
+        <div class="amount-option" data-amount="2000000">
+          <span class="amount">2M</span>
+          <span class="bonus">+300K bonus</span>
+        </div>
+      </div>
+
+      <!-- Custom Amount -->
+      <div class="custom-amount">
+        <label class="form-label fw-bold">Hoặc nhập số tiền khác:</label>
+        <input 
+          type="number" 
+          class="form-control" 
+          id="customAmount" 
+          placeholder="Nhập số tiền (VND)" 
+          min="10000"
+          step="10000"
+        >
+      </div>
+
+      <!-- Payment Methods -->
+      <div class="payment-methods">
+        <h5 class="fw-bold mb-3">Chọn phương thức thanh toán:</h5>
+        
+        <div class="payment-method" data-method="momo">
+          <i class="fab fa-cc-apple-pay"></i>
+          <div class="payment-info">
+            <h5>Ví MoMo</h5>
+            <p>Thanh toán nhanh chóng & bảo mật</p>
+          </div>
+        </div>
+
+        <div class="payment-method" data-method="banking">
+          <i class="fas fa-university"></i>
+          <div class="payment-info">
+            <h5>Chuyển khoản ngân hàng</h5>
+            <p>Hỗ trợ tất cả ngân hàng nội địa</p>
+          </div>
+        </div>
+
+        <div class="payment-method" data-method="card">
+          <i class="fas fa-credit-card"></i>
+          <div class="payment-info">
+            <h5>Thẻ tín dụng / Ghi nợ</h5>
+            <p>Visa, Mastercard, JCB</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn btn-recharge">
+        <i class="fas fa-bolt"></i> Nạp tiền ngay
+      </button>
+    </form>
+  </div>
+
+  <!-- Transaction History -->
+  <div class="transaction-history" data-aos="fade-up" data-aos-delay="200">
+    <h3 class="text-center mb-4">
+      <i class="fas fa-history"></i> Lịch sử giao dịch
+    </h3>
+    <div id="transactionList">
+      <p class="text-center text-muted">Chưa có giao dịch nào</p>
+    </div>
+  </div>
+</div>
+
+<!-- AOS Animation -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+  AOS.init({
+    duration: 800,
+    once: true
+  });
+
+  let selectedAmount = 0;
+  let selectedMethod = '';
+
+  // Amount selection
+  document.querySelectorAll('.amount-option').forEach(option => {
+    option.addEventListener('click', function() {
+      document.querySelectorAll('.amount-option').forEach(opt => 
+        opt.classList.remove('selected')
+      );
+      this.classList.add('selected');
+      selectedAmount = parseInt(this.dataset.amount);
+      document.getElementById('customAmount').value = '';
+    });
+  });
+
+  // Custom amount
+  document.getElementById('customAmount').addEventListener('input', function() {
+    if (this.value) {
+      document.querySelectorAll('.amount-option').forEach(opt => 
+        opt.classList.remove('selected')
+      );
+      selectedAmount = parseInt(this.value);
+    }
+  });
+
+  // Payment method selection
+  document.querySelectorAll('.payment-method').forEach(method => {
+    method.addEventListener('click', function() {
+      document.querySelectorAll('.payment-method').forEach(m => 
+        m.classList.remove('selected')
+      );
+      this.classList.add('selected');
+      selectedMethod = this.dataset.method;
+    });
+  });
+
+  // Form submission
+  document.getElementById('rechargeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    if (!selectedAmount || selectedAmount < 10000) {
+      alert('Vui lòng chọn hoặc nhập số tiền nạp (tối thiểu 10,000 VND)');
+      return;
+    }
+
+    if (!selectedMethod) {
+      alert('Vui lòng chọn phương thức thanh toán');
+      return;
+    }
+
+    try {
+      const response = await fetch('/wallet/recharge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount: selectedAmount,
+          method: selectedMethod
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Nạp tiền thành công! Số dư của bạn đã được cập nhật.');
+        window.location.reload();
+      } else {
+        alert(data.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+    }
+  });
+</script>
+
+</div>
+</div>
+
+<%- include('../partials/footer.ejs') %>
+

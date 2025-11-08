@@ -1,0 +1,88 @@
+<%- include('../partials/header.ejs') %>
+
+<div class="bodyMenu">
+  <%- include('../partials/navbar.ejs') %>
+
+  <div class="container-fluid mt-5 menu-page">
+    <div class="row justify-content-center">
+      <div class="col-11">
+        <div class="row">
+          <aside class="col-md-3 filter-panel">
+            <h5 class="mb-3">Bộ lọc</h5>
+
+        <div class="filter-section mb-4">
+          <h6>Loại sản phẩm</h6>
+          <div class="row">
+            <div class="col-6">
+              <h6 class="filter-subhead">Áo</h6>
+              <div id="categories-ao" class="filter-list"></div>
+            </div>
+            <div class="col-6">
+              <h6 class="filter-subhead">Quần</h6> 
+              <div id="categories-quan" class="filter-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-section mb-4">
+          <h6>Giá</h6>
+          <div class="filter-list">
+            <label><input type="checkbox" name="price" value="0-200000"> 0 - 200.000đ</label>
+            <label><input type="checkbox" name="price" value="200000-300000"> 200.000đ - 300.000đ</label>
+            <label><input type="checkbox" name="price" value="300000-500000"> 300.000đ - 500.000đ</label>
+            <label><input type="checkbox" name="price" value="500000-999999999"> Trên 500.000đ</label>
+          </div>
+        </div>
+
+        <div class="filter-section mb-4">
+          <h6>Kích thước</h6>
+          <div id="sizes" class="size-grid">
+            <div class="row g-2">
+              <div class="col-3"><button class="btn btn-outline-secondary w-100 size-btn" data-size="XS">XS</button></div>
+              <div class="col-3"><button class="btn btn-outline-secondary w-100 size-btn" data-size="S">S</button></div>
+              <div class="col-3"><button class="btn btn-outline-secondary w-100 size-btn" data-size="M">M</button></div>
+              <div class="col-3"><button class="btn btn-outline-secondary w-100 size-btn" data-size="L">L</button></div>
+            </div>
+            <div class="row g-2 mt-2">
+              <div class="col-3"><button class="btn btn-outline-secondary w-100 size-btn" data-size="XL">XL</button></div>
+              <div class="col-3"><button class="btn btn-outline-secondary w-100 size-btn" data-size="2XL">2XL</button></div>
+              <div class="col-3"><button class="btn btn-outline-secondary w-100 size-btn" data-size="3XL">3XL</button></div>
+              <div class="col-3"><button class="btn btn-outline-secondary w-100 size-btn" data-size="4XL">4XL</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Left filter clear button removed; use chips under Collection to remove filters individually or Clear All -->
+      </aside>
+
+      <main class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h3>Collection</h3>
+          <div class="d-flex align-items-center">
+            <div class="dropdown me-3">
+              <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown">
+                Sắp xếp
+              </button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-sort="price-asc">Giá: Thấp đến cao</a></li>
+                <li><a class="dropdown-item" href="#" data-sort="price-desc">Giá: Cao đến thấp</a></li>
+                <li><a class="dropdown-item" href="#" data-sort="name-asc">Tên: A-Z</a></li>
+                <li><a class="dropdown-item" href="#" data-sort="name-desc">Tên: Z-A</a></li>
+              </ul>
+            </div>
+            <div id="activeFilters" class="active-filters ms-2"></div>
+          </div>
+        </div>
+
+        <!-- Product grid -->
+        <div id="productGrid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4"></div>
+
+        <div id="noResults" class="text-center text-muted mt-4" style="display:none">Không tìm thấy sản phẩm phù hợp</div>
+      </main>
+    </div>
+  </div>
+
+  <%- include('../partials/footer.ejs') %>
+
+  <script src="/js/menu.js"></script>
+</div>

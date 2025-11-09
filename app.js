@@ -17,6 +17,8 @@ import publicRoute from './routes/public.route.js';
 import adminRoute from './routes/admin.route.js';
 import staticRoute from './routes/static.route.js';
 import contactRoutes from './routes/contact.route.js';
+import cartRoutes from './routes/cart.routes.js';
+
 
 
 const app = express();
@@ -44,7 +46,6 @@ app.use('/', publicRoute);
 app.use('/', verifyUser, productRoute);
 app.use('/', staticRoute);
 app.use('/', contactRoutes);
-
 // TEMPORARILY DISABLED for development
 // app.use('/', verifyAdmin, adminRoute);
 app.use('/', adminRoute);

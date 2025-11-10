@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        unique: true,
+        unique: true, //Log thong bao loi not 500
         sparse: true, // cho phép null và vẫn đảm bảo không trùng nhau nếu có giá trị
         trim: true,
     },

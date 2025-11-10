@@ -105,7 +105,7 @@ app.use('/api', promotionRoute);
 app.use('/api', voucherRoute);
 app.use('/', wishlistRoute);
 app.use('/', imageProxyRoute);
-app.use('/', verifyAdmin, adminRoute);
+app.use('/', adminRoute);
 
 // VNPay (tạo link, IPN nếu có)
 app.use('/vnpay', vnpayRouter);

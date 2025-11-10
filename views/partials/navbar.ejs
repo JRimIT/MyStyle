@@ -4,80 +4,96 @@
 <link rel="stylesheet" href="/css/navbar.css" />
 
 <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
-    <div class="container-fluid">
-        <!-- Logo -->
-        <a class="navbar-brand" href="/Home">
-            <img src="/logo_mystyle.png" alt="Logo" width="40" height="40" />
-            <!-- <img src="https://icon2.cleanpng.com/ci3/rlv/wwj/ach3bbbvi.webp" alt="Logo" width="40" height="40" /> -->
-        </a>
+  <div class="container-fluid">
+    <!-- Logo -->
+    <a class="navbar-brand" href="/Home">
+      <img src="/logo_mystyle.png" alt="Logo" width="40" height="40" />
+    </a>
 
-        <!-- Toggle for mobile -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+    <!-- Toggle for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <!-- Navbar content -->
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="/Home">Home</a></li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/Menu/listClothes">Menu</a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/contact">Contact</a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+    <!-- Navbar content -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="/Home">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="/Menu/listClothes">Menu</a></li>
+        <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+        <li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+        <li class="nav-item"><a class="nav-link" href="/orders">Orders</a></li>
+        <li class="nav-item"><a class="nav-link" href="/wishlist">Wishlist</a></li>
 
-                <!-- Admin -->
-                <% if (user && user.role==='admin' ) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/Home"> <i class="fas fa-user-shield"></i> Admin </a>
-                    </li>
-                    <% } %>
-
-                        <!-- Shipper -->
-                        <% if (user && user.role==='shipper' ) { %>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/shipper/dashboard"> <i class="fas fa-truck"></i> Shipper
-                                    Dashboard </a>
-                            </li>
-                            <% } %>
+        <!-- Admin -->
+        <% if (user && user.role==='admin' ) { %>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" data-bs-toggle="dropdown">
+              <i class="fas fa-user-shield"></i> Admin
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/admin/Home"><i class="fas fa-home"></i> Dashboard</a></li>
+              <li><a class="dropdown-item" href="/admin/products"><i class="fas fa-box"></i> Sản phẩm</a></li>
+              <li><a class="dropdown-item" href="/admin/categories"><i class="fas fa-tags"></i> Danh mục</a></li>
+              <li><a class="dropdown-item" href="/admin/vouchers"><i class="fas fa-ticket-alt"></i> Voucher</a></li>
             </ul>
+          </li>
+        <% } %>
 
-            <!-- Search bar -->
-            <div class="d-flex search-bar me-4 position-relative" role="search">
-                <!-- Include Search Bar Component -->
-                <%- include('searchBar') %>
-                    <% if (user) { %>
-                        <div class="d-flex align-items-center me-3">
-                            <span class="badge bg-success me-2">
-                                Balance: <%= user.balance ? user.balance.toLocaleString() : 0 %> VND
-                            </span>
-                        </div>
-                        <% } %>
+        <!-- Shipper -->
+        <% if (user && user.role==='shipper' ) { %>
+          <li class="nav-item">
+            <a class="nav-link" href="/shipper/dashboard"><i class="fas fa-truck"></i> Shipper Dashboard</a>
+          </li>
+        <% } %>
+      </ul>
 
-                            <!-- Avatar or Login -->
-                            <% if (user) { %>
-                                <div class="dropdown">
-                                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
-                                        id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <img src="<%= user.avatarUrl || 'https://i.pinimg.com/1200x/dc/6c/b0/dc6cb0521d182f959da46aaee82e742f.jpg' %>"
-                                            alt="avatar" width="40" height="40" class="rounded-circle" />
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
-                                        <li><a class="dropdown-item" href="/profile">👤 Profile</a></li>
-                                        <li><a class="dropdown-item" href="/settings">⚙️ Settings</a></li>
-                                        <li><a class="dropdown-item" href="/orders">📦 Orders</a></li>
-                                        <li>
-                                            <hr class="dropdown-divider" />
-                                        </li>
-                                        <li><a class="dropdown-item text-danger" href="/">🚪 Logout</a></li>
-                                    </ul>
-                                </div>
-                                <% } else { %>
-                                    <a href="/login" class="btn btn-outline-primary">Login</a>
-                                    <% } %>
+      <!-- Search bar + cart + user -->
+      <div class="d-flex search-bar me-4 position-relative" role="search">
+        <%- include('searchBar') %>
+        <% if (typeof cartCount !== 'undefined') { %>
+          <div class="cart-icon position-relative me-3">
+            <a href="/view/cart" class="position-relative text-decoration-none text-dark">
+              <i class="fas fa-shopping-cart fa-lg"></i>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                <%= cartCount %>
+              </span>
+            </a>
+          </div>
+        <% } %>
+
+        <% if (user) { %>
+          <div class="d-flex align-items-center me-3">
+            <div class="balance-display">
+              <i class="fas fa-wallet text-success"></i>
+              <span class="balance-amount" id="navBalance"><%= user.balance ? user.balance.toLocaleString('vi-VN') : 0 %></span>
+              <span class="text-muted">VND</span>
             </div>
-        </div>
+          </div>
+        <% } %>
+
+        <!-- Avatar or Login -->
+        <% if (user) { %>
+          <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="<%= user.avatarUrl || 'https://i.pinimg.com/1200x/dc/6c/b0/dc6cb0521d182f959da46aaee82e742f.jpg' %>" alt="avatar" width="40" height="40" class="rounded-circle" />
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
+              <li><a class="dropdown-item" href="/profile">Profile</a></li>
+              <li><a class="dropdown-item wallet-item" href="/wallet"><i class="fas fa-wallet"></i> Ví của tôi</a></li>
+              <li><a class="dropdown-item recharge-item" href="/wallet"><i class="fas fa-plus-circle"></i> Nạp tiền</a></li>
+              <li><a class="dropdown-item" href="/orders">Orders</a></li>
+              <li><a class="dropdown-item" href="/settings">Settings</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item text-danger" href="/">Logout</a></li>
+            </ul>
+          </div>
+        <% } else { %>
+          <a href="/login" class="btn btn-outline-primary">Login</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
 </nav>
+

@@ -1,0 +1,423 @@
+<%- include('../partials/header.ejs') %>
+<link rel="stylesheet" href="/css/navbar.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+<style>
+  body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding-top: 100px;
+  }
+
+  .admin-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+
+  .page-header {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  }
+
+  .page-header h1 {
+    color: #667eea;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .categories-table-container {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  }
+
+  .btn-add-category {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-add-category:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+  }
+
+  .category-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .badge-active {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+  }
+
+  .badge-inactive {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-action {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-edit {
+    background: #667eea;
+    color: white;
+  }
+
+  .btn-edit:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+  }
+
+  .btn-delete {
+    background: #fa709a;
+    color: white;
+  }
+
+  .btn-delete:hover {
+    background: #f85383;
+    transform: translateY(-2px);
+  }
+
+  /* Modal Styles */
+  .modal-content {
+    border-radius: 20px;
+    border: none;
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .form-control {
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    padding: 12px;
+  }
+
+  .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+  }
+</style>
+
+<%- include('../partials/navbar.ejs') %>
+
+<div class="admin-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1><i class="fas fa-tags"></i> Quản lý Danh mục</h1>
+        <p class="text-muted mb-0">Quản lý các danh mục sản phẩm</p>
+      </div>
+      <button class="btn btn-add-category" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+        <i class="fas fa-plus"></i> Thêm danh mục
+      </button>
+    </div>
+  </div>
+
+  <!-- Categories Table -->
+  <div class="categories-table-container">
+    <table id="categoriesTable" class="table table-hover">
+      <thead>
+        <tr>
+          <th>Hình ảnh</th>
+          <th>Tên danh mục</th>
+          <th>Mô tả</th>
+          <th>Slug</th>
+          <th>Thứ tự</th>
+          <th>Trạng thái</th>
+          <th>Ngày tạo</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% categories.forEach(category => { %>
+        <tr>
+          <td>
+            <% if (category.imageUrl) { %>
+              <img src="<%= category.imageUrl %>" alt="<%= category.name %>" class="category-image">
+            <% } else { %>
+              <div class="category-image bg-secondary d-flex align-items-center justify-content-center">
+                <i class="fas fa-image text-white"></i>
+              </div>
+            <% } %>
+          </td>
+          <td><strong><%= category.name %></strong></td>
+          <td><%= category.description || 'N/A' %></td>
+          <td><code><%= category.slug %></code></td>
+          <td><%= category.order || 0 %></td>
+          <td>
+            <% if (category.isActive) { %>
+              <span class="badge badge-active">Hoạt động</span>
+            <% } else { %>
+              <span class="badge badge-inactive">Không hoạt động</span>
+            <% } %>
+          </td>
+          <td><%= new Date(category.createdAt).toLocaleDateString('vi-VN') %></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn btn-action btn-edit" onclick="editCategory('<%= category._id %>')">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-action btn-delete" onclick="deleteCategory('<%= category._id %>', '<%= category.name %>')">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Thêm danh mục mới</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addCategoryForm">
+          <div class="mb-3">
+            <label class="form-label">Tên danh mục *</label>
+            <input type="text" class="form-control" name="name" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Mô tả</label>
+            <textarea class="form-control" name="description" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">URL hình ảnh</label>
+            <input type="url" class="form-control" name="imageUrl" placeholder="https://...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Thứ tự</label>
+            <input type="number" class="form-control" name="order" value="0">
+          </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" name="isActive" checked>
+            <label class="form-check-label">Kích hoạt ngay</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-add-category" onclick="submitAddCategory()">
+          <i class="fas fa-save"></i> Lưu
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-edit"></i> Chỉnh sửa danh mục</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editCategoryForm">
+          <input type="hidden" name="categoryId" id="editCategoryId">
+          <div class="mb-3">
+            <label class="form-label">Tên danh mục *</label>
+            <input type="text" class="form-control" name="name" id="editName" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Mô tả</label>
+            <textarea class="form-control" name="description" id="editDescription" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">URL hình ảnh</label>
+            <input type="url" class="form-control" name="imageUrl" id="editImageUrl">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Thứ tự</label>
+            <input type="number" class="form-control" name="order" id="editOrder">
+          </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" name="isActive" id="editIsActive">
+            <label class="form-check-label">Kích hoạt</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-add-category" onclick="submitEditCategory()">
+          <i class="fas fa-save"></i> Cập nhật
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+  // Initialize DataTable
+  $(document).ready(function() {
+    $('#categoriesTable').DataTable({
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json'
+      },
+      order: [[4, 'asc']]
+    });
+  });
+
+  // Add Category
+  async function submitAddCategory() {
+    const form = document.getElementById('addCategoryForm');
+    const formData = new FormData(form);
+    
+    const data = {
+      name: formData.get('name'),
+      description: formData.get('description'),
+      imageUrl: formData.get('imageUrl'),
+      order: parseInt(formData.get('order')) || 0,
+      isActive: formData.get('isActive') === 'on'
+    };
+
+    try {
+      const response = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Thêm danh mục thành công!');
+        window.location.reload();
+      } else {
+        alert(result.message || 'Có lỗi xảy ra');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+    }
+  }
+
+  // Edit Category
+  async function editCategory(id) {
+    try {
+      const response = await fetch(`/api/categories/${id}`);
+      const result = await response.json();
+
+      if (result.success) {
+        const category = result.data;
+        document.getElementById('editCategoryId').value = category._id;
+        document.getElementById('editName').value = category.name;
+        document.getElementById('editDescription').value = category.description || '';
+        document.getElementById('editImageUrl').value = category.imageUrl || '';
+        document.getElementById('editOrder').value = category.order || 0;
+        document.getElementById('editIsActive').checked = category.isActive;
+
+        new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Không thể tải thông tin danh mục');
+    }
+  }
+
+  async function submitEditCategory() {
+    const form = document.getElementById('editCategoryForm');
+    const formData = new FormData(form);
+    const id = formData.get('categoryId');
+    
+    const data = {
+      name: formData.get('name'),
+      description: formData.get('description'),
+      imageUrl: formData.get('imageUrl'),
+      order: parseInt(formData.get('order')) || 0,
+      isActive: formData.get('isActive') === 'on'
+    };
+
+    try {
+      const response = await fetch(`/api/categories/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Cập nhật danh mục thành công!');
+        window.location.reload();
+      } else {
+        alert(result.message || 'Có lỗi xảy ra');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+    }
+  }
+
+  // Delete Category
+  async function deleteCategory(id, name) {
+    if (!confirm(`Bạn có chắc chắn muốn xóa danh mục "${name}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/categories/${id}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Xóa danh mục thành công!');
+        window.location.reload();
+      } else {
+        alert(result.message || 'Có lỗi xảy ra');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+    }
+  }
+</script>
+
+<%- include('../partials/footer.ejs') %>
+

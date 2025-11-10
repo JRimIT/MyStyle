@@ -3,6 +3,8 @@
 .settings-container {
   max-width: 600px;
   margin: auto;
+  padding-top: 100px;
+  min-height: 100vh;
 }
 
 .card {

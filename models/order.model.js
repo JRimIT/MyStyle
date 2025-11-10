@@ -1,23 +1,42 @@
 import mongoose from "mongoose";
-import "./product.model.js";
-import "./user.model.js";
 
-const orderSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  items: [
-    {
-      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
-      quantity: Number,
-      price: Number,
+const PaymentSchema = new mongoose.Schema(
+  {
+    status: { type: String, enum: ["pending", "success", "failed"], default: "pending" },
+    amount: Number,
+    bankCode: String,
+    bankTranNo: String,
+    txnNo: String,
+    payDate: String,
+    message: String,
+    via: String,
+  },
+  { _id: false }
+);
+
+const OrderSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Types.ObjectId, ref: "User" },
+    items: [
+      {
+        productId: String,
+        name: String,
+        price: Number,
+        qty: Number,
+        imageUrl: String,
+      },
+    ],
+    total: Number, // VND (không *100)
+    status: { type: String, enum: ["unpaid", "paid", "cancel"], default: "unpaid" },
+    shippingAddress: {
+      fullName: String,
+      phone: String,
+      address: String,
+      note: String,
     },
-  ],
-  totalPrice: Number,
-  status: { type: String, default: "Pending" },
-  address: String,
-  paymentMethod: { type: String, default: "cod" }, // 'wallet' hoặc 'cod'
-  createdAt: { type: Date, default: Date.now },
-});
+    payment: PaymentSchema,
+  },
+  { timestamps: true }
+);
 
-const Order = mongoose.models.order || mongoose.model("Order", orderSchema);
-
-export default Order;
+export default mongoose.model("Order", OrderSchema);

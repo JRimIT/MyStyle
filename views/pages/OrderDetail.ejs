@@ -1,0 +1,70 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<div style="height:80px"></div>
+
+<style>
+  .od-head { background: linear-gradient(135deg,#faf5ff,#eff6ff); padding: 24px 0; }
+  .od-title { font-weight: 700; margin: 0; }
+  .kv { color:#64748b; }
+  .kv strong { color:#0f172a; }
+  .badge-status { font-weight:600; }
+  .st-paid { background:#dcfce7; color:#166534; }
+  .st-unpaid { background:#fee2e2; color:#991b1b; }
+  .st-cancel { background:#f3f4f6; color:#374151; }
+  .card-shadow { border:0; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.08); }
+</style>
+
+<div class="od-head">
+  <div class="container">
+    <h3 class="od-title">Chi tiết đơn hàng</h3>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="card card-shadow mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-sm-6 kv">Mã đơn hàng<br/><strong><%= order._id %></strong></div>
+        <div class="col-sm-3 kv">Tổng tiền<br/><strong><%= Number(order.total || order.totalPrice || 0).toLocaleString('vi-VN') %> ₫</strong></div>
+        <div class="col-sm-3 kv">Trạng thái<br/>
+          <% if (order.status==='paid') { %>
+            <span class="badge badge-status st-paid">PAID</span>
+          <% } else if (order.status==='cancel') { %>
+            <span class="badge badge-status st-cancel">CANCEL</span>
+          <% } else { %>
+            <span class="badge badge-status st-unpaid">UNPAID</span>
+          <% } %>
+        </div>
+        <% if (order.shippingAddress) { %>
+          <div class="col-12 kv">Địa chỉ nhận hàng<br/>
+            <strong><%= order.shippingAddress.fullName %></strong> · <%= order.shippingAddress.phone %><br/>
+            <span><%= order.shippingAddress.address %></span>
+          </div>
+        <% } %>
+
+        <% if (order.vnp_TxnRef || order.payment) { %>
+          <div class="col-12"> <hr class="my-2"/> </div>
+          <div class="col-sm-4 kv">Phương thức<br/><strong><%= (order.payment?.via)||'vnpay' %></strong></div>
+          <div class="col-sm-4 kv">Mã giao dịch<br/><strong><%= order.vnp_TransactionNo || order.payment?.bankTranNo || '-' %></strong></div>
+          <div class="col-sm-4 kv">Ngân hàng<br/><strong><%= order.vnp_BankCode || order.payment?.bankCode || '-' %></strong></div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-shadow">
+    <div class="card-header bg-white"><strong>Sản phẩm</strong></div>
+    <ul class="list-group list-group-flush">
+      <% (order.items || []).forEach(it => { %>
+        <li class="list-group-item d-flex justify-content-between">
+          <div>
+            <div class="fw-semibold"><%= it.productId?.name || it.name || it.productId %></div>
+            <small class="text-muted">SL: <%= it.qty || it.quantity || 1 %></small>
+          </div>
+          <div><%= Number(it.price||0).toLocaleString('vi-VN') %> ₫</div>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+</div>
+

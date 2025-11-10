@@ -68,11 +68,49 @@ router.get("/listFeatureClothes", async (req, res) => {
 
     const product = await Product.find(filter)
       .sort({ createdAt: -1 })
-      .select("name price imageUrl category sizes");
+      .select("name price originalPrice discount discountAmount isOnSale saleStartDate saleEndDate promotionLabel imageUrl category sizes");
+    
+    // Calculate sale price for each product
+    const productsWithSalePrice = product.map((p) => {
+      const productObj = p.toObject();
+      let salePrice = p.price;
+      let isCurrentlyOnSale = false;
+      
+      // Check if product is currently on sale
+      if (p.isOnSale) {
+        const now = new Date();
+        const startValid = !p.saleStartDate || now >= p.saleStartDate;
+        const endValid = !p.saleEndDate || now <= p.saleEndDate;
+        isCurrentlyOnSale = startValid && endValid;
+        
+        if (isCurrentlyOnSale) {
+          if (p.discount > 0) {
+            const basePrice = p.originalPrice || p.price;
+            salePrice = basePrice * (1 - p.discount / 100);
+          } else if (p.discountAmount > 0) {
+            const basePrice = p.originalPrice || p.price;
+            salePrice = Math.max(0, basePrice - p.discountAmount);
+          }
+        }
+      }
+      
+      productObj.salePrice = Math.round(salePrice);
+      productObj.isCurrentlyOnSale = isCurrentlyOnSale;
+      productObj.displayPrice = isCurrentlyOnSale ? salePrice : p.price;
+      productObj.originalDisplayPrice = isCurrentlyOnSale ? (p.originalPrice || p.price) : null;
+      
+      return productObj;
+    });
+    
+    // Load categories
+    const Category = (await import("../models/category.model.js")).default;
+    const categories = await Category.find({ isActive: true })
+      .sort({ order: 1, name: 1 });
     
     if (!product || product.length === 0) {
       return res.render("pages/Home", {
         listFeatureFood: [],
+        categories: categories || [],
         cartCount: req.user ? await countProduct(req.user.userId) : 0,
         user: req.user,
         search,
@@ -89,7 +127,8 @@ router.get("/listFeatureClothes", async (req, res) => {
     }
     
     res.render("pages/Home", {
-      listFeatureFood: product,
+      listFeatureFood: productsWithSalePrice,
+      categories: categories || [],
       cartCount: cartCount,
       user,
       search,
@@ -103,3 +142,6 @@ router.get("/listFeatureClothes", async (req, res) => {
 });
 
 export default router;
+
+
+

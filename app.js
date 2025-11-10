@@ -4,6 +4,7 @@ import methodOverride from "method-override";
 import ejs from "ejs";
 import path from "path";
 import createError from 'http-errors';
+import { connectToMongoDB } from './db/connectToMongoDB.js';
 
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -20,6 +21,12 @@ import promotionRoute from "./routes/promotion.route.js";
 import voucherRoute from "./routes/voucher.route.js";
 import adminRoute from "./routes/admin.route.js";
 import orderRoute from "./routes/order.route.js";
+import publicRoute from "./routes/public.route.js";
+import contactRoutes from "./routes/contact.route.js";
+import productCrudRoutes from "./routes/productCrud.route.js";
+
+
+
 import './models/user.model.js';
 import './models/product.model.js';
 import './models/review.model.js';
@@ -27,10 +34,6 @@ import './models/review.model.js';
 dotenv.config();
 import { fileURLToPath } from 'url';
 
-
-import contactRoutes from './routes/contact.route.js';
-import productCrudRoutes from './routes/productCrud.route.js';
-import cartRoutes from './routes/cart.routes.js';
 
 // ===== ESM __dirname setup =====
 const __filename = fileURLToPath(import.meta.url);
@@ -61,8 +64,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.engine("ejs", ejs.renderFile);
-app.set("view engine", "ejs");
+
 // ===== View engine =====
 app.engine('ejs', ejs.renderFile);
 app.set('view engine', 'ejs');
@@ -76,7 +78,7 @@ app.use((req, res, next) => {
 });
 
 // ===== API routes đặt TRƯỚC các route "/" =====
-app.use('/api/cart', cartRoutes);
+app.use('/api/cart', cartRoute);
 
 // ===== App routes =====
 app.get('/', (req, res) => {
@@ -91,14 +93,20 @@ app.get('/cart', (req, res) => {
 
 app.use('/', authRoute);
 // public routes (no auth) - pages like /menu and product listing API
-//app.use('/', publicRoute);
 
-app.use('/', productRoute);
+app.use('/', publicRoute);
+
+app.use('/', verifyUser, productRoute);
 app.use('/', staticRoute);
 app.use('/', contactRoutes);
+// TEMPORARILY DISABLED for development
+// app.use('/', verifyAdmin, adminRoute);
+app.use('/', adminRoute);
 
-app.get("/", async (req, res) => {
-  res.render("partials/index");
+// catch 404
+app.use((req, res, next) => {
+    next(createError(404));
+
 });
 
 // Log route registration
@@ -146,6 +154,12 @@ app.use((err, req, res, next) => {
   res.locals.error = req.app.get("env") === "development" ? err : {};
   res.status(err.status || 500);
   res.render("error");
+});
+// Server start
+const PORT = process.env.PORT || 6000;
+app.listen(PORT, () => {
+    connectToMongoDB();
+    console.log(`Server started on port http://localhost:${PORT}`);
 });
 
 export default app;

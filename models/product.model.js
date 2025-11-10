@@ -12,10 +12,14 @@ const productSchema = new mongoose.Schema({
   saleEndDate: { type: Date, default: null }, // Ngày kết thúc khuyến mãi
   promotionLabel: { type: String, default: "" }, // Nhãn khuyến mãi (VD: "Giảm 50%", "Flash Sale")
   imageUrl: String,
-  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
+
+
   images: [String],
   category: String,
-  sizes: [String],
+  sizes: { type: [String], default: [] },
+  badges: { type: [String], default: [] },
+  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
+
   createdAt: { type: Date, default: Date.now },
 });
 

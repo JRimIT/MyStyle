@@ -53,13 +53,11 @@
                             <% } %>
             </ul>
 
-            <!-- Right side elements - all in one line -->
-            <div class="d-flex align-items-center ms-auto gap-2">
-                <!-- Search bar -->
-                <div class="search-bar position-relative" role="search">
-                    <%- include('searchBar') %>
-                </div>
 
+            <!-- Search bar -->
+            <div class="d-flex search-bar me-4 position-relative" role="search">
+                <!-- Include Search Bar Component -->
+                <%- include('searchBar') %>     
                 <!-- Cart Icon -->
                 <% if (typeof cartCount !== 'undefined') { %>
                 <div class="cart-icon position-relative">

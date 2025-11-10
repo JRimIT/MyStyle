@@ -1,7 +1,8 @@
 <%- include('../partials/header.ejs') %>
 
 <div class="bodyAdmin">
-  <!-- Truyền user mặc định là admin để tránh lỗi user is not defined -->
+
+
   <%- include('../partials/navbar.ejs', { user: { role: 'admin', name: 'Admin' } }) %>
 
   <div class="container mt-5 pt-5">
@@ -11,15 +12,21 @@
     </div>
 
     <%
-      // Chống crash nếu product chưa có
+
       const p = (typeof product !== 'undefined' && product) ? product : {};
+      const sizesCsv  = Array.isArray(p.sizes)  ? p.sizes.join(', ')  : '';
+      const badgesCsv = Array.isArray(p.badges) ? p.badges.join(', ') : '';
+      const imagesCsv = Array.isArray(p.images) ? p.images.join(', ') : '';
+
     %>
 
     <div class="row">
       <div class="col-md-8">
         <div class="card">
           <div class="card-body">
-            <form action="/admin/products/edit/<%= p._id %>" method="POST" enctype="multipart/form-data">
+
+            <form action="/productCrud/<%= p._id %>?_method=PUT&redirect=/admin/products" method="POST">
+\
               <div class="mb-3">
                 <label class="form-label">Name</label>
                 <input name="name" value="<%= p.name || '' %>" class="form-control" required />
@@ -36,15 +43,25 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Image URL (or upload below)</label>
-                <input name="imageUrl" value="<%= p.imageUrl || '' %>" class="form-control" placeholder="/uploads/.. or http(s)://..." />
-                <!-- Giữ link ảnh cũ nếu không upload ảnh mới -->
-                <input type="hidden" name="existingImageUrl" value="<%= p.imageUrl || '' %>" />
+
+                <label class="form-label">Image URL</label>
+                <input name="imageUrl" value="<%= p.imageUrl || '' %>" class="form-control" placeholder="/uploads/... or http(s)://..." />
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Upload Image</label>
-                <input name="image" type="file" accept="image/*" class="form-control" />
+                <label class="form-label">Images (CSV)</label>
+                <input name="imagesCsv" value="<%= imagesCsv %>" class="form-control" placeholder="url1, url2, url3" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Sizes (CSV)</label>
+                <input name="sizesCsv" value="<%= sizesCsv %>" class="form-control" placeholder="S, M, L, XL" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Badges (CSV)</label>
+                <input name="badgesCsv" value="<%= badgesCsv %>" class="form-control" placeholder="new, hot, sale" />
+
               </div>
 
               <div class="mb-3">
@@ -67,6 +84,12 @@
             <% } else { %>
               <p class="text-muted">No image</p>
             <% } %>
+
+            <div class="mt-2 text-muted small">
+              Created: <%= p.createdAt ? new Date(p.createdAt).toLocaleString('vi-VN') : '-' %><br>
+              Reviews: <%= Array.isArray(p.reviews) ? p.reviews.length : 0 %>
+            </div>
+
           </div>
         </div>
       </div>
@@ -75,4 +98,6 @@
   </div>
 
   <%- include('../partials/footer.ejs') %>
+
 </div>
+

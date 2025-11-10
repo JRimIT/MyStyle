@@ -264,7 +264,7 @@
 }
 
 .card img {
-    height: 180px;
+    height: 280px;
     width: 100%;
     object-fit: cover;
     transition: filter 0.2s, transform 0.3s;
@@ -398,7 +398,7 @@
         max-width: 98vw;
     }
     .card img {
-        height: 140px;
+        height: 220px;
     }
 }
 @media (max-width: 576px) {
@@ -414,7 +414,7 @@
     }
     .card img {
         border-radius: 10px 10px 0 0;
-        height: 100px;
+        height: 180px;
     }
 }
 

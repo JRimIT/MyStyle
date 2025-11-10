@@ -4,6 +4,7 @@ import methodOverride from "method-override";
 import ejs from "ejs";
 import path from "path";
 import createError from 'http-errors';
+
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { jwtPassport, verifyAdmin, verifyUser } from "./config/jwtConfig.js";
@@ -19,19 +20,31 @@ import promotionRoute from "./routes/promotion.route.js";
 import voucherRoute from "./routes/voucher.route.js";
 import adminRoute from "./routes/admin.route.js";
 import orderRoute from "./routes/order.route.js";
-import { connectToMongoDB } from "./db/connectToMongoDB.js";
+import './models/user.model.js';
+import './models/product.model.js';
+import './models/review.model.js';
 
 dotenv.config();
+import { fileURLToPath } from 'url';
+
+
+import contactRoutes from './routes/contact.route.js';
+import productCrudRoutes from './routes/productCrud.route.js';
+import cartRoutes from './routes/cart.routes.js';
+
+// ===== ESM __dirname setup =====
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
 
 const app = express();
-app.use(express.static("public"));
+
+// ===== Core middlewares =====
+app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
-app.use(methodOverride("_method"));
+app.use(methodOverride('_method'));
 
 app.use(session(sessionConfig));
-
 app.use(jwtPassport.initialize());
 
 // Middleware to extract user from session token (optional)
@@ -50,6 +63,39 @@ app.use((req, res, next) => {
 
 app.engine("ejs", ejs.renderFile);
 app.set("view engine", "ejs");
+// ===== View engine =====
+app.engine('ejs', ejs.renderFile);
+app.set('view engine', 'ejs');
+// Đảm bảo trỏ đúng thư mục views
+app.set('views', path.join(__dirname, 'views'));
+
+// ===== Logger để debug luồng request =====
+app.use((req, res, next) => {
+  console.log('[REQ]', req.method, req.originalUrl);
+  next();
+});
+
+// ===== API routes đặt TRƯỚC các route "/" =====
+app.use('/api/cart', cartRoutes);
+
+// ===== App routes =====
+app.get('/', (req, res) => {
+  res.render('partials/index');
+});
+
+// 👉 Route RENDER TRANG CART (view) — đây là nơi bạn mở Cart.ejs
+app.get('/cart', (req, res) => {
+  // Truyền user để navbar không lỗi (có thể null)
+  res.render('pages/Cart', { user: req.session?.user || null });
+});
+
+app.use('/', authRoute);
+// public routes (no auth) - pages like /menu and product listing API
+//app.use('/', publicRoute);
+
+app.use('/', productRoute);
+app.use('/', staticRoute);
+app.use('/', contactRoutes);
 
 app.get("/", async (req, res) => {
   res.render("partials/index");
@@ -71,7 +117,9 @@ app.use("/api", categoryRoute);
 app.use("/api", promotionRoute);
 app.use("/api", voucherRoute);
 
-// catch 404
+app.use('/productCrud', productCrudRoutes);
+
+// ===== 404 cuối cùng =====
 app.use((req, res, next) => {
   // If it's an API route, return JSON instead of rendering error page
   if (req.path.startsWith('/api/') || req.path.startsWith('/cart/')) {

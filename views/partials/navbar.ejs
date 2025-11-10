@@ -21,7 +21,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/Home">Home</a></li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/Menu/listClothes">Menu</a>
+                    <a class="nav-link" href="/menu">Menu</a>
                 </li>
                 <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
                 <li class="nav-item">
@@ -53,38 +53,37 @@
                             <% } %>
             </ul>
 
-            <!-- Search bar -->
-            <div class="d-flex search-bar me-4 position-relative" role="search">
-                <!-- Include Search Bar Component -->
-                 
-                <%- include('searchBar') %>
-                   <!-- Cart Icon -->
-            <% if (typeof cartCount !== 'undefined') { %>
-            <div class="cart-icon position-relative me-3">
+            <!-- Right side elements - all in one line -->
+            <div class="d-flex align-items-center ms-auto gap-2">
+                <!-- Search bar -->
+                <div class="search-bar position-relative" role="search">
+                    <%- include('searchBar') %>
+                </div>
+
+                <!-- Cart Icon -->
+                <% if (typeof cartCount !== 'undefined') { %>
+                <div class="cart-icon position-relative">
                 <a href="/view/cart" class="position-relative text-decoration-none text-dark">
                     <i class="fas fa-shopping-cart fa-lg"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                         <%= cartCount %>
                     </span>
                 </a>
-            </div>
-            <% } %>
-                    <% if (user) { %>
-                        <div class="d-flex align-items-center me-3">
-                            <div class="balance-display">
-                                <i class="fas fa-wallet text-success"></i>
-                                <span class="balance-amount" id="navBalance">
-                                    <%= user.balance ? user.balance.toLocaleString('vi-VN') : 0 %>
-                                </span>
-                                <span class="text-muted">VND</span>
-                            </div>
-                        </div>
-                        <% } %>
+                </div>
+                <% } %>
 
-                        
-        
+                <!-- Balance Display -->
+                <% if (user) { %>
+                <div class="balance-display">
+                    <i class="fas fa-wallet text-success"></i>
+                    <span class="balance-amount" id="navBalance">
+                        <%= user.balance ? user.balance.toLocaleString('vi-VN') : 0 %>
+                    </span>
+                    <span class="text-muted">VND</span>
+                </div>
+                <% } %>
 
-                            <!-- Avatar or Login -->
+                <!-- Avatar or Login -->
                             <% if (user) { %>
                                 <div class="dropdown">
                                     <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
@@ -92,25 +91,23 @@
                                         <img src="<%= user.avatarUrl || 'https://i.pinimg.com/1200x/dc/6c/b0/dc6cb0521d182f959da46aaee82e742f.jpg' %>"
                                             alt="avatar" width="40" height="40" class="rounded-circle" />
                                     </a>
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
-                                        <li><a class="dropdown-item" href="/profile">👤 Profile</a></li>
-                                        <li><a class="dropdown-item wallet-item" href="/wallet">
-                                            <i class="fas fa-wallet"></i> Ví của tôi
-                                        </a></li>
-                                        <li><a class="dropdown-item recharge-item" href="/wallet">
-                                            <i class="fas fa-plus-circle"></i> Nạp tiền
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="/orders">📦 Orders</a></li>
-                                        <li><a class="dropdown-item" href="/settings">⚙️ Settings</a></li>
-                                        <li>
-                                            <hr class="dropdown-divider" />
-                                        </li>
-                                        <li><a class="dropdown-item text-danger" href="/">🚪 Logout</a></li>
-                                    </ul>
-                                </div>
-                                <% } else { %>
-                                    <a href="/login" class="btn btn-outline-primary">Login</a>
-                                    <% } %>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
+                        <li><a class="dropdown-item" href="/profile">👤 Profile</a></li>
+                        <li><a class="dropdown-item recharge-item" href="/wallet">
+                            <i class="fas fa-plus-circle"></i> Nạp tiền
+                        </a></li>
+                        <li><a class="dropdown-item" href="/orders">📦 Orders</a></li>
+                        <li><a class="dropdown-item" href="/settings">⚙️ Settings</a></li>
+                        <li>
+                            <hr class="dropdown-divider" />
+                        </li>
+                        <li><a class="dropdown-item text-danger" href="/">🚪 Logout</a></li>
+                    </ul>
+                </div>
+                <% } else { %>
+                <a href="/login" class="btn btn-outline-primary">Login</a>
+                <% } %>
             </div>
         </div>
+    </div>
 </nav>

@@ -58,8 +58,18 @@
           <tbody>
             <% list.forEach(p => {
                 const priceText  = p?.price != null ? Number(p.price).toLocaleString('vi-VN') + ' VND' : '—';
-                const sizesArr   = Array.isArray(p?.sizes) ? p.sizes : [];
-                const badgesArr  = Array.isArray(p?.badges) ? p.badges : [];
+                // support both array and CSV string stored in the DB
+                const sizesArr = Array.isArray(p?.sizes)
+                  ? p.sizes
+                  : (typeof p?.sizes === 'string' && p.sizes.trim()
+                      ? p.sizes.split(',').map(s => s.trim()).filter(Boolean)
+                      : []);
+
+                const badgesArr = Array.isArray(p?.badges)
+                  ? p.badges
+                  : (typeof p?.badges === 'string' && p.badges.trim()
+                      ? p.badges.split(',').map(s => s.trim()).filter(Boolean)
+                      : []);
                 const desc       = (p?.description || '').trim();
                 const descShort  = desc ? (desc.length > 80 ? desc.slice(0,80) + '…' : desc) : '—';
             %>
@@ -84,7 +94,7 @@
                   <!-- ĐỔI: Edit sang productCrud -->
                   <a class="btn btn-sm btn-outline-secondary me-2" href="/admin/products/edit/<%= p?._id %>">Edit</a>
 
-                  <!-- Delete vẫn fetch tới productCrud -->
+                  <!-- Delete -> use admin route -->
                   <button type="button" class="btn btn-sm btn-danger js-del" data-id="<%= p._id %>" data-name="<%= p.name %>">Delete</button>
                 </td>
               </tr>
@@ -156,14 +166,19 @@
 
   document.getElementById('btnDoDelete').addEventListener('click', async () => {
     try {
-      const res = await fetch(`/productCrud/${encodeURIComponent(delId)}`, {
-        method: 'DELETE',
-        headers: { 'Accept': 'application/json' }
+      // Use POST to the admin delete route
+      const res = await fetch(`/admin/products/delete/${encodeURIComponent(delId)}`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
       });
+
       if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      // Remove row from table if exists
       if (delRow) delRow.remove();
       bootstrap.Modal.getInstance(document.getElementById('delModal')).hide();
       showAlert('success', 'Đã xoá sản phẩm thành công.');
+      // Reload to ensure paging and counts updated
       setTimeout(() => { window.location.reload(); }, 800);
     } catch (err) {
       console.error(err);

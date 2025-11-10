@@ -5,7 +5,7 @@
   <div class="container mt-5 pt-5" style="max-width:860px">
     <h2 class="mb-4">Create Product</h2>
 
-    <form action="/productCrud?redirect=/productCrud" method="POST" class="card p-4 shadow-sm">
+    <form action="/admin/products/create" method="POST" class="card p-4 shadow-sm">
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label">Name *</label>
@@ -31,15 +31,15 @@
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Sizes (CSV)</label>
+          <label class="form-label">Sizes</label>
           <input name="sizes" class="form-control" placeholder="S,M,L,XL">
-          <div class="form-text">Nhập các size, cách nhau bằng dấu phẩy. Service sẽ tự đổi thành mảng.</div>
+          <div class="form-text">Nhập các size, phân cách bằng dấu phẩy</div>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Badges (CSV)</label>
-          <input name="badges" class="form-control" placeholder="hot,new,best-seller">
-          <div class="form-text">Nhập nhãn, cách nhau bằng dấu phẩy. Service sẽ tự đổi thành mảng.</div>
+          <label class="form-label">Badges</label>
+          <input name="badges" class="form-control" placeholder="hot,new,sale">
+          <div class="form-text">Nhập các nhãn, phân cách bằng dấu phẩy</div>
         </div>
       </div>
 

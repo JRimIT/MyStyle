@@ -1,0 +1,72 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs', { 
+  user: typeof user !== 'undefined' ? user : null,
+  cartCount: typeof cartCount !== 'undefined' ? cartCount : 0
+}) %>
+
+<div class="container mt-5 pt-5">
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title mb-4">Edit Invoice</h2>
+      
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger">
+          <%= error %>
+        </div>
+      <% } %>
+
+      <form method="POST" action="/manage/invoices/<%= invoice._id %>">
+        <div class="mb-3">
+          <label class="form-label">Payment Status</label>
+          <select name="paymentStatus" class="form-select" required>
+            <option value="pending" <%= invoice.paymentStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+            <option value="paid" <%= invoice.paymentStatus === 'paid' ? 'selected' : '' %>>Paid</option>
+            <option value="failed" <%= invoice.paymentStatus === 'failed' ? 'selected' : '' %>>Failed</option>
+          </select>
+        </div>
+
+        <!-- Debug information -->
+        <div class="mb-3">
+          <p class="text-muted">Current Status: <strong><%= invoice.paymentStatus %></strong></p>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Price Total</label>
+            <input type="number" class="form-control" value="<%= invoice.priceTotal || 0 %>" readonly />
+          </div>
+        </div>
+
+        <div class="table-responsive mb-3">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% invoice.items.forEach(item => { %>
+                <tr>
+                  <td><%= item.product ? item.product.name : 'Unknown Product' %></td>
+                  <td><%= item.quantity %></td>
+                  <td><%= item.price.toLocaleString('vi-VN') %> VND</td>
+                  <td><%= (item.quantity * item.price).toLocaleString('vi-VN') %> VND</td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <a href="/manage/invoices/<%= invoice._id %>" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer.ejs') %>

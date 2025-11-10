@@ -1,0 +1,85 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs', { 
+  user: typeof user !== 'undefined' ? user : null,
+  cartCount: typeof cartCount !== 'undefined' ? cartCount : 0
+}) %>
+
+<div class="container mt-5 pt-5">
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="card-title mb-0">Invoice Detail</h2>
+        <div class="btn-group">
+          <a href="/manage/invoices/edit/<%= invoice._id %>" class="btn btn-primary">Edit</a>
+          <a href="/manage/invoices/<%= invoice._id %>/export" class="btn btn-success">Export PDF</a>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <p><strong>Invoice ID:</strong> <%= invoice._id %></p>
+          <p><strong>Payment Status:</strong> 
+            <span class="badge bg-<%= 
+              invoice.paymentStatus === 'paid' ? 'success' : 
+              invoice.paymentStatus === 'failed' ? 'danger' : 
+              'warning' %>">
+              <%= invoice.paymentStatus %>
+            </span>
+          </p>
+          <p><strong>Created At:</strong> <%= new Date(invoice.createdAt).toLocaleString('vi-VN') %></p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Customer:</strong> <%= invoice.userId ? invoice.userId : 'N/A' %></p>
+          <p><strong>Total Amount:</strong> <%= invoice.priceTotal ? invoice.priceTotal.toLocaleString('vi-VN') : '0' %> VND</p>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (invoice.items && invoice.items.length > 0) { %>
+              <% invoice.items.forEach(item => { %>
+                <tr>
+                  <td><%= item.product ? item.product.name : 'Unknown Product' %></td>
+                  <td><%= item.quantity %></td>
+                  <td><%= item.price.toLocaleString('vi-VN') %> VND</td>
+                  <td><%= (item.quantity * item.price).toLocaleString('vi-VN') %> VND</td>
+                </tr>
+              <% }); %>
+              <tr class="table-info">
+                <td colspan="3" class="text-end"><strong>Total Amount:</strong></td>
+                <td><strong><%= invoice.priceTotal.toLocaleString('vi-VN') %> VND</strong></td>
+              </tr>
+            <% } else { %>
+              <tr>
+                <td colspan="4" class="text-center">No items found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="mt-3">
+        <a href="/manage/invoices" class="btn btn-outline-secondary">Back to Invoices</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer.ejs') %>
+<p><b>Total:</b> <%= (invoice.total||0).toLocaleString('vi-VN') %> <%= invoice.currency||'VND' %></p>
+<p><a href="<%= BASE %>/edit/<%= invoice._id %>">Edit</a> | <a href="<%= BASE %>/<%= invoice._id %>/export">Export PDF</a></p>
+<hr/>
+<ul>
+  <% (invoice.items||[]).forEach(it => { %>
+    <li><%= it.name %> — <%= it.quantity %> x <%= (it.unitPrice||0).toLocaleString('vi-VN') %></li>
+  <% }) %>
+</ul>

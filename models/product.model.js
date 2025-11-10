@@ -8,8 +8,8 @@ const productSchema = new mongoose.Schema({
   imageUrl: String,
   images: [String],
   category: String,
-  sizes: { type: [String], default: [] },
-  badges: { type: [String], default: [] },
+  sizes: [String],
+  badges: [String],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
   createdAt: { type: Date, default: Date.now },
 });

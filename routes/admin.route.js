@@ -11,7 +11,7 @@ import { countProduct } from "../controllers/countCart.js";
 import Order from "../models/order.model.js";
 import multer from "multer";
 import path from "path";
-import { listProducts, getProduct } from "../controllers/productService.js";
+import { listProducts, createProduct } from "../controllers/productService.js";
 
 const router = express.Router();
 const axiosInstance = axios.create({
@@ -145,15 +145,55 @@ router.get("/admin/products/create", (req, res) => {
 // Admin: Handle product creation
 router.post("/admin/products/create", async (req, res) => {
   try {
+    // debug incoming body
+    console.log('POST /admin/products/create - raw body:', req.body);
+
     const { name, description, price, imageUrl, category } = req.body;
-    await Product.create({ name, description, price, imageUrl, category });
+    const rawSizes = req.body.sizes;
+    const rawBadges = req.body.badges;
+
+    // helper to produce array from CSV/string/array
+    const toArray = (v) => {
+      if (Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
+      if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
+      return [];
+    };
+
+    // detect schema expectation: Array or String
+    const sizesPath = Product.schema.path('sizes');
+    const badgesPath = Product.schema.path('badges');
+
+    let sizesToSave;
+    if (sizesPath && sizesPath.instance === 'Array') {
+      sizesToSave = toArray(rawSizes);
+    } else {
+      // store as single string (join if array)
+      if (Array.isArray(rawSizes)) sizesToSave = rawSizes.map(x => String(x).trim()).filter(Boolean).join(',');
+      else sizesToSave = rawSizes !== undefined ? String(rawSizes).trim() : undefined;
+    }
+
+    let badgesToSave;
+    if (badgesPath && badgesPath.instance === 'Array') {
+      badgesToSave = toArray(rawBadges);
+    } else {
+      if (Array.isArray(rawBadges)) badgesToSave = rawBadges.map(x => String(x).trim()).filter(Boolean).join(',');
+      else badgesToSave = rawBadges !== undefined ? String(rawBadges).trim() : undefined;
+    }
+
+    const productData = { name, description, price, imageUrl, category };
+    if (typeof sizesToSave !== 'undefined') productData.sizes = sizesToSave;
+    if (typeof badgesToSave !== 'undefined') productData.badges = badgesToSave;
+
+    console.log('POST /admin/products/create - normalized to save:', productData);
+
+    const created = await Product.create(productData);
+    console.log('POST /admin/products/create - saved:', created);
     res.redirect("/admin/products");
   } catch (error) {
     console.error("Error creating product:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
 // Admin: Show edit product form
 router.get("/admin/products/edit/:productId", async (req, res) => {
   try {

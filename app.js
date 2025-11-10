@@ -18,7 +18,7 @@ import adminRoute from './routes/admin.route.js';
 import staticRoute from './routes/static.route.js';
 import contactRoutes from './routes/contact.route.js';
 import cartRoutes from './routes/cart.routes.js';
-
+import invoiceRoutes from "./routes/invoice.routes.js";
 
 // ===== ESM __dirname setup =====
 const __filename = fileURLToPath(import.meta.url);
@@ -70,7 +70,7 @@ app.use('/', contactRoutes);
 // TEMPORARILY DISABLED for development
 // app.use('/', verifyAdmin, adminRoute);
 app.use('/', adminRoute);
-
+app.use("/", invoiceRoutes);
 
 // ===== 404 cuối cùng =====
 app.use((req, res, next) => {

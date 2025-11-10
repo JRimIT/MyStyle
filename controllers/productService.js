@@ -1,25 +1,32 @@
 import mongoose from "mongoose";
 import Product from "../models/product.model.js";
 
-// ---- Helpers ----
 function toArray(val) {
   if (Array.isArray(val)) {
-    return val.map(s => String(s).trim()).filter(Boolean);
+    return val.map((s) => String(s).trim()).filter(Boolean);
   }
-  if (typeof val === "string") {
-    return val
-      .split(",")
-      .map(s => s.trim())
-      .filter(Boolean);
+  if (val === undefined || val === null) return [];
+  // ép mọi thứ về string, tách theo dấu phẩy
+  return String(val)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function pickAny(input, keys) {
+  for (const k of keys) {
+    if (input[k] !== undefined && input[k] !== null && input[k] !== "") {
+      return input[k];
+    }
   }
-  return [];
+  return undefined;
 }
 
 function normalizePayload(input = {}) {
   const out = { ...input };
 
-  // Price -> number (giữ undefined nếu không gửi)
-  if (out.price !== undefined && out.price !== null) {
+  // Price -> number
+  if (out.price !== undefined && out.price !== null && out.price !== "") {
     const n = Number(out.price);
     if (!Number.isFinite(n)) throw new Error("price must be a number");
     out.price = n;
@@ -27,18 +34,26 @@ function normalizePayload(input = {}) {
     delete out.price;
   }
 
-  // Hỗ trợ cả sizes (array) và sizesCSV (string)
-  if (input.sizes !== undefined || input.sizesCSV !== undefined) {
-    out.sizes = toArray(input.sizes ?? input.sizesCSV);
+  // HỖ TRỢ MỌI BIẾN THỂ TÊN: sizes / sizesCSV / sizesCsv
+  const sizesRaw = pickAny(input, ["sizes", "sizesCSV", "sizesCsv"]);
+  if (sizesRaw !== undefined) {
+    out.sizes = toArray(sizesRaw);
   }
 
-  // Hỗ trợ cả badges (array) và badgesCSV (string)
-  if (input.badges !== undefined || input.badgesCSV !== undefined) {
-    out.badges = toArray(input.badges ?? input.badgesCSV);
+  // images / imagesCSV / imagesCsv
+  const imagesRaw = pickAny(input, ["images", "imagesCSV", "imagesCsv"]);
+  if (imagesRaw !== undefined) {
+    out.images = toArray(imagesRaw);
+  }
+
+  // badges / badgesCSV / badgesCsv
+  const badgesRaw = pickAny(input, ["badges", "badgesCSV", "badgesCsv"]);
+  if (badgesRaw !== undefined) {
+    out.badges = toArray(badgesRaw);
   }
 
   // Dọn rác: không để field rỗng ""
-  ["name", "description", "imageUrl", "category"].forEach(k => {
+  ["name", "description", "imageUrl", "category"].forEach((k) => {
     if (out[k] !== undefined) {
       const v = typeof out[k] === "string" ? out[k].trim() : out[k];
       if (v === "") delete out[k];

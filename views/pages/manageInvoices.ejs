@@ -1,0 +1,83 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs', { 
+  user: typeof user !== 'undefined' ? user : null,
+  cartCount: typeof cartCount !== 'undefined' ? cartCount : 0
+}) %>
+
+<div class="container mt-5 pt-5">
+  <h2 class="mb-4">Manage Invoices</h2>
+  
+  <div class="card">
+    <div class="card-body">
+      <form method="get" action="/manage/invoices" class="mb-4">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <input name="search" value="<%= typeof search !== 'undefined' ? search : '' %>" class="form-control" placeholder="Search invoice no..."/>
+          </div>
+          <div class="col-md-4">
+            <select name="status" class="form-select">
+              <option value="">--Status--</option>
+              <option value="pending" <%= typeof status !== 'undefined' && status==='pending'?'selected':'' %>>Pending</option>
+              <option value="paid" <%= typeof status !== 'undefined' && status==='paid'?'selected':'' %>>Paid</option>
+              <option value="failed" <%= typeof status !== 'undefined' && status==='failed'?'selected':'' %>>Failed</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <button type="submit" class="btn btn-primary">Filter</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Invoice No</th>
+              <th>User</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (typeof invoices !== 'undefined' && invoices.length > 0) { %>
+              <% invoices.forEach(inv => { %>
+                <tr>
+                  <td><a href="/manage/invoices/<%= inv._id %>" class="text-decoration-none"><%= inv.invoiceNumber || inv._id %></a></td>
+                  <td><%= inv.userId || '-' %></td>
+                  <td><%= (inv.priceTotal||0).toLocaleString('vi-VN') %> VND</td>
+                  <td>
+                    <span class="badge bg-<%= 
+                      inv.paymentStatus === 'paid' ? 'success' : 
+                      inv.paymentStatus === 'failed' ? 'danger' : 
+                      'warning' 
+                    %>">
+                      <%= inv.paymentStatus %>
+                    </span>
+                  </td>
+                  <td><%= new Date(inv.createdAt).toLocaleString('vi-VN') %></td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <a href="/manage/invoices/edit/<%= inv._id %>" class="btn btn-sm btn-outline-primary">Edit</a>
+                      <form action="/manage/invoices/<%= inv._id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this invoice?')">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                      </form>
+                      <a href="/manage/invoices/<%= inv._id %>/export" class="btn btn-sm btn-outline-success">Export</a>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="6" class="text-center">No invoices found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

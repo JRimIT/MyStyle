@@ -1,7 +1,7 @@
 import express from 'express';
 import Cart from '../models/cart.model.js';
 import Product from '../models/product.model.js';
-import { verifyUser } from '../config/jwtConfig.js';
+import { verifyUserOrRedirect as verifyUser } from '../config/jwtConfig.js';
 import { countProduct } from '../controllers/countCart.js';
 
 const router = express.Router();
@@ -20,14 +20,14 @@ router.post('/cart/test-post', (req, res) => {
 });
 
 // Log all routes when module loads
-// console.log('📦 Cart routes loaded:');
-// console.log('  - GET /view/cart');
-// console.log('  - POST /cart/add');
-// console.log('  - PUT /cart/update/:itemId');
-// console.log('  - DELETE /cart/remove/:itemId');
-// console.log('  - DELETE /cart/clear');
-// console.log('  - POST /cart/apply-voucher');
-// console.log('  - POST /cart/remove-voucher');
+console.log('📦 Cart routes loaded:');
+console.log('  - GET /view/cart');
+console.log('  - POST /cart/add');
+console.log('  - PUT /cart/update/:itemId');
+console.log('  - DELETE /cart/remove/:itemId');
+console.log('  - DELETE /cart/clear');
+console.log('  - POST /cart/apply-voucher');
+console.log('  - POST /cart/remove-voucher');
 
 // View cart page
 router.get('/view/cart', verifyUser, async (req, res) => {

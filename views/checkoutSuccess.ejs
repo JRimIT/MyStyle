@@ -1,0 +1,96 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<!-- spacer to avoid fixed-top navbar overlay -->
+<div style="height:80px"></div>
+
+<style>
+  .success-hero {
+    background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+  }
+  .success-card {
+    max-width: 680px;
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    overflow: hidden;
+  }
+  .success-head {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    padding: 28px 24px;
+  }
+  .success-icon {
+    width: 64px; height: 64px;
+    display: inline-flex; align-items:center; justify-content:center;
+    border-radius: 50%; background: #fff; color: #16a34a;
+    box-shadow: 0 6px 16px rgba(0,0,0,.12);
+    animation: pop .5s ease-out;
+  }
+  @keyframes pop { 0%{transform:scale(.6); opacity:.2} 100%{transform:scale(1); opacity:1} }
+  .kv { color:#64748b; }
+  .kv strong { color:#0f172a; }
+  .btn-wrap .btn { min-width: 180px; }
+  .meta-grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+  @media (max-width: 576px){ .meta-grid { grid-template-columns: 1fr; } }
+  .divider { height:1px; background:#e2e8f0; margin: 16px 0; }
+  .badge-bank { background:#eef2ff; color:#3730a3; }
+  .text-muted-2 { color:#6b7280; }
+  .bg-soft { background:#f8fafc; }
+</style>
+
+<section class="success-hero">
+  <div class="card success-card w-100">
+    <div class="success-head text-center">
+      <div class="d-inline-block success-icon mb-3">
+        <i class="fas fa-check fa-2x"></i>
+      </div>
+      <h2 class="mb-1">Thanh toán thành công</h2>
+      <p class="mb-0">Cảm ơn bạn đã tin tưởng MyStyle!</p>
+    </div>
+    <div class="card-body p-4 p-md-5 bg-white">
+      <div class="meta-grid">
+        <% if (typeof orderCode !== 'undefined') { %>
+          <div class="kv">Mã đơn hàng<br/><strong><%= orderCode %></strong></div>
+        <% } %>
+        <% if (typeof amount !== 'undefined') { %>
+          <div class="kv">Số tiền<br/><strong><%= Number(amount).toLocaleString('vi-VN') %> ₫</strong></div>
+        <% } %>
+        <% if (transNo) { %>
+          <div class="kv">Mã giao dịch<br/><strong><%= transNo %></strong></div>
+        <% } %>
+        <% if (bankCode) { %>
+          <div class="kv">Phương thức/Ngân hàng<br/>
+            <span class="badge badge-bank rounded-pill px-3 py-2"><i class="fas fa-building me-2"></i><%= bankCode %></span>
+          </div>
+        <% } %>
+        <% if (payDate) { %>
+          <div class="kv">Thời gian thanh toán<br/><strong><%= payDate %></strong></div>
+        <% } %>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="bg-soft rounded p-3 small text-muted-2">
+        <i class="fas fa-info-circle me-2"></i>
+        Xác nhận đã được gửi tới email (nếu có). Bạn có thể theo dõi trạng thái đơn tại “Đơn hàng của tôi”.
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 gap-md-3 justify-content-center mt-4 btn-wrap">
+        <a href="/orders" class="btn btn-primary">
+          <i class="fas fa-receipt me-2"></i> Đơn hàng của tôi
+        </a>
+        <a href="/Home" class="btn btn-outline-secondary">
+          <i class="fas fa-shopping-bag me-2"></i> Tiếp tục mua sắm
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

@@ -1,16 +1,5 @@
 /* Modern Glassmorphism Navbar */
 .navbar-custom {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(16px) saturate(180%);
-    border-radius: 18px;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-    margin: 18px auto 0 auto;
-    max-width: 1200px;
-    padding: 0.5rem 2rem;
-    position: sticky;
-    top: 16px;
-    z-index: 1050;
-    transition: box-shadow 0.3s, background 0.3s;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(16px) saturate(180%);
     border-radius: 18px;
@@ -245,7 +234,6 @@
 
 .cart-icon {
     position: relative;
-    margin-right: 2rem;
     margin-top: 10px;
 }
 
@@ -354,9 +342,13 @@
 
 .dropdown-menu .dropdown-item {
     border-radius: 8px;
-    margin: 2px 8px;
+    margin: 2px 0; /* chỉ giữ margin dọc */
+    padding: 8px 12px; /* hoặc theo ý bạn */
     font-weight: 500;
     transition: background 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .dropdown-menu .dropdown-item:hover {
@@ -424,6 +416,9 @@
         padding: 0.5rem 1rem;
         border-radius: 0;
         margin: 0;
+        top: 0;
+        left: 0;
+        right: 0;
     }
 
     .search-bar {
@@ -445,4 +440,24 @@
         font-size: 0.85rem;
         padding: 5px 8px;
     }
+
+    .balance-display {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+
+    .balance-display i {
+        font-size: 0.9rem;
+    }
+
+    .balance-amount {
+        font-size: 0.9rem;
+    }
+
+    .balance-display .text-muted {
+        font-size: 0.8rem;
+    }
+}
+body {
+    padding-top: 80px;
 }

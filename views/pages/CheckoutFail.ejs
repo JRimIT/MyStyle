@@ -1,0 +1,7 @@
+<%- include('../partials/header') %>
+<div style="height:80px"></div>
+<div class="container py-5 text-center">
+  <h2 class="text-danger mb-3">Thanh toán thất bại</h2>
+  <p><%= reason || "Có lỗi trong quá trình thanh toán." %></p>
+  <a href="/view/checkout" class="btn btn-outline-secondary mt-3">Quay lại thanh toán</a>
+</div>

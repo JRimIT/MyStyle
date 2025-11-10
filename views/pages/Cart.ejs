@@ -1,262 +1,450 @@
 <%- include('../partials/header.ejs') %>
+<link rel="stylesheet" href="/css/navbar.css" />
+<link rel="stylesheet" href="/css/Cart.css" />
 
-<div class="bodyPage">
-    <!-- Truyền user an toàn (có thể là null) -->
-    <%- include('../partials/navbar.ejs', { user: (typeof user !== 'undefined' ? user : null) }) %>
+<%- include('../partials/navbar.ejs') %>
+<div style="height: 80px"></div>
 
-    <div class="container mt-5 pt-5">
-        <h2>Your Cart</h2>
+<div class="cart-page">
+    <div class="cart-container">
+        <!-- Page Header -->
+        <div class="cart-header">
+            <h1><i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn</h1>
+            <p class="text-muted">Bạn có <span id="totalItemsCount"><%= totalItems %></span> sản phẩm trong giỏ hàng</p>
+        </div>
 
-        <div class="row mt-4">
+        <% if (!cart.items || cart.items.length === 0) { %>
+        <!-- Empty Cart -->
+        <div class="empty-cart">
+            <div class="empty-cart-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <h2>Giỏ hàng trống</h2>
+            <p>Bạn chưa có sản phẩm nào trong giỏ hàng</p>
+            <a href="/listFeatureClothes" class="btn btn-shopping">
+                <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+            </a>
+        </div>
+        <% } else { %>
+        <div class="row">
             <!-- Cart Items -->
-            <div class="col-md-8">
-                <div id="cartContainer">
-                    <p class="text-muted">Loading cart...</p>
+            <div class="col-lg-8">
+                <div class="cart-items-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3>Sản phẩm</h3>
+                        <button class="btn btn-clear-cart" onclick="clearCart()">
+                            <i class="fas fa-trash"></i> Xóa tất cả
+                        </button>
+                    </div>
+
+                    <div class="cart-items">
+                        <% cart.items.forEach((item, index) => { %> <% if (item.product) { %>
+                        <div class="cart-item" data-item-id="<%= item._id %>">
+                            <div class="item-image">
+                                <img
+                                    src="/img?url=<%= encodeURIComponent(item.product.imageUrl||'') %>"
+                                    alt="<%= item.product.name %>"
+                                    referrerpolicy="no-referrer"
+                                />
+                            </div>
+
+                            <div class="item-details">
+                                <h4><%= item.product.name %></h4>
+                                <p class="item-category"><%= item.product.category %></p>
+                                <div class="item-price-section">
+                                    <% let itemPrice = item.product.price; let isOnSale = false; let originalItemPrice =
+                                    item.product.price; if (item.product.isOnSale) { const now = new Date(); const
+                                    startValid = !item.product.saleStartDate || now >= item.product.saleStartDate; const
+                                    endValid = !item.product.saleEndDate || now <= item.product.saleEndDate; isOnSale =
+                                    startValid && endValid; if (isOnSale) { if (item.product.discount > 0) {
+                                    originalItemPrice = item.product.originalPrice || item.product.price; itemPrice =
+                                    originalItemPrice * (1 - item.product.discount / 100); } else if
+                                    (item.product.discountAmount > 0) { originalItemPrice = item.product.originalPrice
+                                    || item.product.price; itemPrice = Math.max(0, originalItemPrice -
+                                    item.product.discountAmount); } } } %> <% if (isOnSale && originalItemPrice !==
+                                    itemPrice) { %>
+                                    <p class="item-price-original">
+                                        <%= originalItemPrice.toLocaleString('vi-VN') %> VND
+                                    </p>
+                                    <p class="item-price"><%= Math.round(itemPrice).toLocaleString('vi-VN') %> VND</p>
+                                    <% } else { %>
+                                    <p class="item-price"><%= itemPrice.toLocaleString('vi-VN') %> VND</p>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <div class="item-quantity">
+                                <label>Số lượng:</label>
+                                <div class="quantity-controls">
+                                    <button
+                                        class="btn-quantity"
+                                        onclick="updateQuantity('<%= item._id %>', <%= item.quantity - 1 %>)"
+                                    >
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input
+                                        type="number"
+                                        class="quantity-input"
+                                        value="<%= item.quantity %>"
+                                        min="1"
+                                        onchange="updateQuantity('<%= item._id %>', this.value)"
+                                        data-item-id="<%= item._id %>"
+                                    />
+                                    <button
+                                        class="btn-quantity"
+                                        onclick="updateQuantity('<%= item._id %>', <%= item.quantity + 1 %>)"
+                                    >
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="item-total">
+                                <p class="total-label">Thành tiền:</p>
+                                <p class="total-amount">
+                                    <% let finalItemPrice = itemPrice; if (isOnSale) { finalItemPrice =
+                                    Math.round(itemPrice); } %> <%= (finalItemPrice *
+                                    item.quantity).toLocaleString('vi-VN') %> VND
+                                </p>
+                            </div>
+
+                            <div class="item-actions">
+                                <button class="btn-remove" onclick="removeItem('<%= item._id %>')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <% } %> <% }) %>
+                    </div>
                 </div>
             </div>
 
-            <!-- Quick Add Form -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5>Add to Cart</h5>
-                        <form id="addForm" class="mt-3" novalidate>
-                            <div class="mb-3">
-                                <label class="form-label">Product ID</label>
-                                <input type="text" id="addProductId" class="form-control" required />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Quantity</label>
-                                <input type="number" id="addQuantity" class="form-control" min="1" value="1" required />
-                            </div>
-                            <button id="addBtn" type="submit" class="btn btn-primary w-100">Add</button>
-                        </form>
-                    </div>
-                </div>
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="order-summary">
+                    <h3><i class="fas fa-receipt"></i> Tóm tắt đơn hàng</h3>
 
-                <div class="card mt-3">
-                    <div class="card-body">
-                        <h6 class="card-title">Quick Tips</h6>
-                        <ul class="small text-muted mb-0">
-                            <li>Product ID lấy từ trang chi tiết sản phẩm</li>
-                            <li>Có thể chỉnh số lượng trực tiếp trong giỏ</li>
-                            <li>Remove để xoá sản phẩm khỏi giỏ</li>
-                        </ul>
+                    <div class="summary-row">
+                        <span>Tạm tính:</span>
+                        <span id="subtotal"><%= subtotal.toLocaleString('vi-VN') %> VND</span>
+                    </div>
+
+                    <!-- Voucher Section -->
+                    <div class="voucher-section">
+                        <% if (appliedVoucher && appliedVoucher.code) { %>
+                        <div class="applied-voucher">
+                            <div class="voucher-info">
+                                <i class="fas fa-ticket-alt"></i>
+                                <span><strong><%= appliedVoucher.code %></strong></span>
+                                <button class="btn-remove-voucher" onclick="removeVoucher()" title="Gỡ voucher">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <% if (appliedVoucher.discount > 0) { %>
+                            <div class="voucher-discount">
+                                Giảm: <strong>-<%= appliedVoucher.discount.toLocaleString('vi-VN') %> VND</strong>
+                            </div>
+                            <% } %> <% if (appliedVoucher.freeShipping) { %>
+                            <div class="voucher-discount"><i class="fas fa-shipping-fast"></i> Miễn phí vận chuyển</div>
+                            <% } %>
+                        </div>
+                        <% } else { %>
+                        <div class="voucher-input-group">
+                            <input
+                                type="text"
+                                id="voucherCode"
+                                class="form-control voucher-input"
+                                placeholder="Nhập mã voucher"
+                                maxlength="20"
+                            />
+                            <button class="btn-apply-voucher" onclick="applyVoucher()">
+                                <i class="fas fa-check"></i> Áp dụng
+                            </button>
+                        </div>
+                        <div id="voucherMessage" class="voucher-message"></div>
+                        <% } %>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Phí vận chuyển:</span>
+                        <span id="shipping">
+                            <% if (freeShipping || shipping === 0) { %>
+                            <span class="text-success">Miễn phí</span>
+                            <% } else { %> <%= shipping.toLocaleString('vi-VN') %> VND <% } %>
+                        </span>
+                    </div>
+
+                    <% if (voucherDiscount > 0) { %>
+                    <div class="summary-row voucher-discount-row">
+                        <span>Giảm giá (Voucher):</span>
+                        <span class="text-success" id="voucherDiscountAmount">
+                            -<%= voucherDiscount.toLocaleString('vi-VN') %> VND
+                        </span>
+                    </div>
+                    <% } %> <% if (subtotal < 500000) { %>
+                    <div class="shipping-note">
+                        <i class="fas fa-info-circle"></i>
+                        Mua thêm <%= (500000 - subtotal).toLocaleString('vi-VN') %> VND để được miễn phí vận chuyển!
+                    </div>
+                    <% } %>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-total">
+                        <span>Tổng cộng:</span>
+                        <span id="total"><%= total.toLocaleString('vi-VN') %> VND</span>
+                    </div>
+
+                    <div class="checkout-section">
+                        <button class="btn-checkout" onclick="checkout()">
+                            <i class="fas fa-credit-card"></i> Thanh toán
+                        </button>
+                        <a href="/listFeatureClothes" class="btn-continue">
+                            <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+                        </a>
+                    </div>
+
+                    <div class="security-badges">
+                        <div class="badge-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Bảo mật thanh toán</span>
+                        </div>
+                        <div class="badge-item">
+                            <i class="fas fa-truck"></i>
+                            <span>Giao hàng nhanh</span>
+                        </div>
+                        <div class="badge-item">
+                            <i class="fas fa-undo"></i>
+                            <span>Đổi trả dễ dàng</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- row -->
+        <% } %>
     </div>
-    <!-- container -->
 </div>
-<!-- bodyPage -->
 
 <script>
-    // ===== Helpers =====
-    const container = document.getElementById('cartContainer');
-
-    const asInt = (v, def = 1) => {
-        const n = parseInt(v, 10);
-        return Number.isFinite(n) && n > 0 ? n : def;
-    };
-    const asNum = (v, def = 0) => {
-        const n = Number(v);
-        return Number.isFinite(n) ? n : def;
-    };
-    const fmt = (n) => asNum(n).toLocaleString('vi-VN') + ' VND';
-
-    async function readJsonOrThrow(res) {
-        let data = null;
-        try {
-            data = await res.json();
-        } catch {}
-        if (!res.ok) {
-            const msg = (data && (data.message || data.error)) || 'HTTP ' + res.status;
-            const err = new Error(msg);
-            err.status = res.status;
-            throw err;
+    // Update quantity
+    async function updateQuantity(itemId, newQuantity) {
+        if (newQuantity < 1) {
+            newQuantity = 1;
         }
-        return data;
+
+        try {
+            const response = await fetch(`/cart/update/${itemId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ quantity: parseInt(newQuantity) }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Update UI
+                document.getElementById('subtotal').textContent = result.subtotal.toLocaleString('vi-VN') + ' VND';
+                document.getElementById('total').textContent = result.total.toLocaleString('vi-VN') + ' VND';
+
+                // Update shipping
+                const shippingEl = document.getElementById('shipping');
+                if (result.shipping === 0) {
+                    shippingEl.innerHTML = '<span class="text-success">Miễn phí</span>';
+                } else {
+                    shippingEl.textContent = result.shipping.toLocaleString('vi-VN') + ' VND';
+                }
+
+                // Reload page to update all items
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            } else {
+                alert(result.message || 'Có lỗi xảy ra');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra. Vui lòng thử lại.');
+        }
     }
 
-    // ===== API (session-based) =====
-    async function apiGetCart() {
-        const res = await fetch('/api/cart', { credentials: 'include' });
-        return readJsonOrThrow(res); // { cart, subtotal }
-    }
-
-    async function apiAddItem({ productId, quantity }) {
-        const res = await fetch('/api/cart/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ productId, quantity }),
-        });
-        return readJsonOrThrow(res);
-    }
-
-    async function apiSetQty({ productId, quantity }) {
-        const res = await fetch('/api/cart/item', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ productId, quantity }),
-        });
-        return readJsonOrThrow(res);
-    }
-
-    async function apiRemoveItem({ productId }) {
-        const res = await fetch('/api/cart/item', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ productId }),
-        });
-        return readJsonOrThrow(res);
-    }
-
-    // ===== Render =====
-    function renderCart(cart, subtotalFromApi) {
-        const items = Array.isArray(cart?.items) ? cart.items : [];
-
-        if (!items.length) {
-            container.innerHTML = '<p class="text-muted">Your cart is empty</p>';
+    // Remove item
+    async function removeItem(itemId) {
+        if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
             return;
         }
 
-        const computedSubtotal = items.reduce((sum, it) => {
-            const p = it?.product || {};
-            return sum + asNum(p.price) * asInt(it?.quantity);
-        }, 0);
-        const subtotal = asNum(subtotalFromApi, computedSubtotal);
-
-        let html = `
-      <div class="table-responsive">
-        <table class="table align-middle">
-          <thead>
-            <tr>
-              <th style="min-width:240px;">Product</th>
-              <th>Price</th>
-              <th style="width: 160px;">Quantity</th>
-              <th>Subtotal</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-        items.forEach((it) => {
-            const p = it?.product || {};
-            const pid = p?._id || '';
-            const price = asNum(p?.price);
-            const qty = asInt(it?.quantity);
-            const lineTotal = price * qty;
-
-            html += `
-        <tr data-product-id="${pid}">
-          <td>
-            <div class="d-flex align-items-center">
-              ${
-                  p?.imageUrl
-                      ? `<img src="${p.imageUrl}" alt="" class="me-2" style="width:60px;height:60px;object-fit:cover;">`
-                      : `<div class="bg-light me-2" style="width:60px;height:60px;"></div>`
-              }
-              <div>
-                <div class="fw-semibold">${p?.name ? String(p.name) : 'Unknown Product'}</div>
-                <div class="text-muted small">${p?.category || ''}</div>
-              </div>
-            </div>
-          </td>
-          <td>${fmt(price)}</td>
-          <td>
-            <div class="input-group">
-              <input type="number" min="1" value="${qty}" class="form-control"
-                     onchange="updateQty('${pid}', this.value)">
-            </div>
-          </td>
-          <td>${fmt(lineTotal)}</td>
-          <td>
-            <button class="btn btn-sm btn-outline-danger" onclick="removeItem('${pid}')">Remove</button>
-          </td>
-        </tr>
-      `;
-        });
-
-        html += `
-          </tbody>
-        </table>
-      </div>
-      <div class="d-flex justify-content-end align-items-center mt-3">
-        <h4 class="mb-0">Total: ${fmt(subtotal)}</h4>
-      </div>
-    `;
-
-        container.innerHTML = html;
-    }
-
-    // ===== UI actions =====
-    async function fetchAndRender() {
         try {
-            const data = await apiGetCart();
-            renderCart(data.cart, data.subtotal);
-        } catch (err) {
-            if (err.status === 401) {
-                container.innerHTML = '<p class="text-muted">Please login to view cart</p>';
+            const response = await fetch(`/cart/remove/${itemId}`, {
+                method: 'DELETE',
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Remove item from DOM
+                const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+                if (itemElement) {
+                    itemElement.style.opacity = '0';
+                    itemElement.style.transform = 'translateX(-100px)';
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 300);
+                }
             } else {
-                container.innerHTML =
-                    '<p class="text-danger">Error loading cart: ' + (err.message || 'Unknown') + '</p>';
+                alert(result.message || 'Có lỗi xảy ra');
             }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra. Vui lòng thử lại.');
         }
     }
 
-    async function updateQty(productId, quantity) {
-        const q = asInt(quantity);
-        if (q < 1) return fetchAndRender();
+    // Clear cart
+    async function clearCart() {
+        if (!confirm('Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi giỏ hàng?')) {
+            return;
+        }
+
         try {
-            await apiSetQty({ productId, quantity: q });
-            await fetchAndRender();
-        } catch (err) {
-            alert('Error updating quantity: ' + (err.message || 'Unknown'));
-            await fetchAndRender();
+            const response = await fetch('/cart/clear', {
+                method: 'DELETE',
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert(result.message || 'Có lỗi xảy ra');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra. Vui lòng thử lại.');
         }
     }
 
-    async function removeItem(productId) {
-        if (!confirm('Remove this item from cart?')) return;
+    // Apply voucher
+    async function applyVoucher() {
+        const code = document.getElementById('voucherCode').value.trim();
+        const messageEl = document.getElementById('voucherMessage');
+
+        if (!code) {
+            messageEl.innerHTML =
+                '<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Vui lòng nhập mã voucher</span>';
+            return;
+        }
+
         try {
-            await apiRemoveItem({ productId });
-            await fetchAndRender();
-        } catch (err) {
-            alert('Error removing item: ' + (err.message || 'Unknown'));
+            const response = await fetch('/cart/apply-voucher', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: code }),
+                credentials: 'include', // Include cookies for session
+            });
+
+            // Check if response is ok
+            if (!response.ok) {
+                // Try to parse as JSON, if fails, show status text
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = {
+                        success: false,
+                        message: `Lỗi ${response.status}: ${response.statusText}`,
+                    };
+                }
+
+                let errorMsg = errorData.message || `Lỗi ${response.status}`;
+
+                if (errorData.debug && errorData.debug.availableCodes && errorData.debug.availableCodes.length > 0) {
+                    errorMsg +=
+                        '<br><small class="text-muted">Các mã có sẵn: ' +
+                        errorData.debug.availableCodes.join(', ') +
+                        '</small>';
+                }
+
+                messageEl.innerHTML =
+                    '<span class="text-danger"><i class="fas fa-exclamation-circle"></i> ' + errorMsg + '</span>';
+                return;
+            }
+
+            const result = await response.json();
+
+            if (response.ok) {
+                messageEl.innerHTML =
+                    '<span class="text-success"><i class="fas fa-check-circle"></i> ' + result.message + '</span>';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                let errorMsg = result.message || 'Có lỗi xảy ra';
+
+                // Show debug info if available
+                if (result.debug && result.debug.availableCodes && result.debug.availableCodes.length > 0) {
+                    errorMsg +=
+                        '<br><small class="text-muted">Các mã có sẵn: ' +
+                        result.debug.availableCodes.join(', ') +
+                        '</small>';
+                }
+
+                messageEl.innerHTML =
+                    '<span class="text-danger"><i class="fas fa-exclamation-circle"></i> ' + errorMsg + '</span>';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            messageEl.innerHTML =
+                '<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Có lỗi xảy ra. Vui lòng thử lại.</span>';
         }
     }
 
-    document.getElementById('addForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('addBtn');
-        const productId = document.getElementById('addProductId').value.trim();
-        const quantity = asInt(document.getElementById('addQuantity').value, 1);
-        if (!productId) return alert('Please enter a product ID');
+    // Remove voucher
+    async function removeVoucher() {
+        if (!confirm('Bạn có chắc chắn muốn gỡ voucher này?')) {
+            return;
+        }
 
         try {
-            btn.disabled = true;
-            await apiAddItem({ productId, quantity });
-            document.getElementById('addProductId').value = '';
-            document.getElementById('addQuantity').value = '1';
-            await fetchAndRender();
-        } catch (err) {
-            alert('Error adding item: ' + (err.message || 'Unknown'));
-        } finally {
-            btn.disabled = false;
+            const response = await fetch('/cart/remove-voucher', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert(result.message || 'Có lỗi xảy ra');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra. Vui lòng thử lại.');
+        }
+    }
+
+    // Allow Enter key to apply voucher
+    document.addEventListener('DOMContentLoaded', function () {
+        const voucherInput = document.getElementById('voucherCode');
+        if (voucherInput) {
+            voucherInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    applyVoucher();
+                }
+            });
         }
     });
 
-    // Expose for inline handlers
-    window.updateQty = updateQty;
-    window.removeItem = removeItem;
-
-    document.addEventListener('DOMContentLoaded', fetchAndRender);
+    // Checkout
+    function checkout() {
+        window.location.href = '/view/checkout';
+    }
 </script>
 
 <%- include('../partials/footer.ejs') %>

@@ -1,221 +1,108 @@
-<%- include('../partials/header.ejs') %>
-<link rel="stylesheet" href="/css/navbar.css" />
-<link rel="stylesheet" href="/css/Orders.css" />
+<%- include('../partials/header') %> <%- include('../partials/navbar') %>
 
-<%- include('../partials/navbar.ejs') %>
+<!-- spacer to avoid navbar overlay -->
+<div style="height: 80px"></div>
 
-<div class="orders-container">
-  <div class="orders-header">
-    <h1><i class="fas fa-shopping-bag"></i> Đơn hàng của tôi</h1>
-    <p class="text-muted">Quản lý và theo dõi đơn hàng của bạn</p>
-  </div>
-
-  <% if (orders.length === 0) { %>
-    <!-- Empty State -->
-    <div class="empty-orders">
-      <i class="fas fa-box-open"></i>
-      <h3>Chưa có đơn hàng nào</h3>
-      <p>Bắt đầu mua sắm ngay để tạo đơn hàng đầu tiên!</p>
-      <a href="/listFeatureClothes" class="btn btn-primary">
-        <i class="fas fa-shopping-cart"></i> Mua sắm ngay
-      </a>
-    </div>
-  <% } else { %>
-    <!-- Orders List -->
-    <div class="orders-list">
-      <% orders.forEach(order => { %>
-        <div class="order-card" data-order-id="<%= order._id %>" data-payment-method="<%= order.paymentMethod %>">
-          <div class="order-header">
-            <div class="order-id">
-              <strong>Mã đơn:</strong> #<%= order._id.toString().slice(-8).toUpperCase() %>
-            </div>
-            <div class="order-date">
-              <%= new Date(order.createdAt).toLocaleDateString('vi-VN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              }) %>
-            </div>
-          </div>
-
-          <div class="order-status">
-            <span class="status-badge status-<%= order.status.toLowerCase() %>">
-              <% if (order.status === 'Pending') { %>
-                <i class="fas fa-clock"></i> Chờ xác nhận
-              <% } else if (order.status === 'Processing') { %>
-                <i class="fas fa-cog"></i> Đang xử lý
-              <% } else if (order.status === 'Shipping') { %>
-                <i class="fas fa-truck"></i> Đang giao
-              <% } else if (order.status === 'Delivered') { %>
-                <i class="fas fa-check-circle"></i> Đã giao
-              <% } else if (order.status === 'Cancelled') { %>
-                <i class="fas fa-times-circle"></i> Đã hủy
-              <% } %>
-            </span>
-          </div>
-
-          <div class="order-items">
-            <% order.items.forEach(item => { %>
-              <% if (item.productId) { %>
-                <div class="order-item">
-                  <img src="<%= item.productId.imageUrl %>" alt="<%= item.productId.name %>">
-                  <div class="item-details">
-                    <h5><%= item.productId.name %></h5>
-                    <p class="item-quantity">Số lượng: <%= item.quantity %></p>
-                    <p class="item-price"><%= item.price.toLocaleString('vi-VN') %> VND</p>
-                  </div>
-                </div>
-              <% } %>
-            <% }) %>
-          </div>
-
-          <div class="order-footer">
-            <div class="order-total">
-              <span>Tổng tiền:</span>
-              <strong><%= order.totalPrice.toLocaleString('vi-VN') %> VND</strong>
-            </div>
-            
-            <div class="order-payment-method">
-              <span>Thanh toán:</span>
-              <% if (order.paymentMethod === 'wallet') { %>
-                <span class="badge bg-primary">
-                  <i class="fas fa-wallet"></i> Ví điện tử
-                </span>
-              <% } else { %>
-                <span class="badge bg-success">
-                  <i class="fas fa-money-bill-wave"></i> COD
-                </span>
-              <% } %>
-            </div>
-          </div>
-
-          <% if (order.status === 'Cancelled') { %>
-            <div class="cancel-info">
-              <i class="fas fa-info-circle"></i>
-              <div>
-                <strong>Đã hủy lúc:</strong> <%= new Date(order.cancelledAt).toLocaleString('vi-VN') %><br>
-                <% if (order.cancelReason) { %>
-                  <strong>Lý do:</strong> <%= order.cancelReason %><br>
-                <% } %>
-                <% if (order.refunded) { %>
-                  <span class="text-success">
-                    <i class="fas fa-check-circle"></i> Đã hoàn tiền vào ví
-                  </span>
-                <% } %>
-              </div>
-            </div>
-          <% } %>
-
-          <div class="order-actions">
-            <% if (order.status === 'Pending' || order.status === 'Processing') { %>
-              <button 
-                class="btn btn-danger btn-cancel" 
-                onclick="cancelOrder('<%= order._id %>')"
-              >
-                <i class="fas fa-times"></i> Hủy đơn hàng
-              </button>
-            <% } %>
-            <button class="btn btn-outline-primary" onclick="viewOrderDetail('<%= order._id %>')">
-              <i class="fas fa-eye"></i> Chi tiết
-            </button>
-          </div>
-        </div>
-      <% }) %>
-    </div>
-  <% } %>
-</div>
-
-<!-- Cancel Order Modal -->
-<div class="modal fade" id="cancelOrderModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="fas fa-exclamation-triangle text-warning"></i> Xác nhận hủy đơn hàng
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p>Bạn có chắc chắn muốn hủy đơn hàng này không?</p>
-        <div class="mb-3">
-          <label class="form-label">Lý do hủy (tùy chọn):</label>
-          <select class="form-select" id="cancelReason">
-            <option value="">-- Chọn lý do --</option>
-            <option value="Tôi muốn thay đổi sản phẩm">Tôi muốn thay đổi sản phẩm</option>
-            <option value="Tìm được giá rẻ hơn">Tìm được giá rẻ hơn</option>
-            <option value="Đổi ý không muốn mua nữa">Đổi ý không muốn mua nữa</option>
-            <option value="Thời gian giao hàng quá lâu">Thời gian giao hàng quá lâu</option>
-            <option value="Khác">Khác</option>
-          </select>
-        </div>
-        <div class="alert alert-info">
-          <i class="fas fa-info-circle"></i>
-          <span id="refundInfo"></span>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-        <button type="button" class="btn btn-danger" onclick="confirmCancel()">
-          <i class="fas fa-check"></i> Xác nhận hủy
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-let currentOrderId = null;
-
-function cancelOrder(orderId) {
-  currentOrderId = orderId;
-  const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
-  
-  // Find order to show refund info
-  const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
-  const paymentMethod = orderCard?.dataset.paymentMethod;
-  
-  document.getElementById('refundInfo').textContent = paymentMethod === 'wallet' 
-    ? 'Số tiền sẽ được hoàn lại vào ví của bạn sau khi hủy đơn'
-    : 'Đơn hàng COD sẽ được hủy ngay lập tức';
-  
-  modal.show();
-}
-
-async function confirmCancel() {
-  if (!currentOrderId) return;
-
-  const reason = document.getElementById('cancelReason').value;
-
-  try {
-    const response = await fetch(`/orders/${currentOrderId}/cancel`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason }),
-      credentials: 'include'
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      alert(result.message);
-      bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal')).hide();
-      window.location.reload();
-    } else {
-      alert(result.message || 'Có lỗi xảy ra');
+<style>
+    .od-hero {
+        background: linear-gradient(135deg, #fdf2f8, #ede9fe);
+        padding: 24px 0;
     }
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Có lỗi xảy ra. Vui lòng thử lại.');
-  }
-}
+    .od-title {
+        font-weight: 700;
+        margin: 0;
+    }
+    .badge-status {
+        font-weight: 600;
+    }
+    .st-paid {
+        background: #dcfce7;
+        color: #166534;
+    }
+    .st-unpaid {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .st-cancel {
+        background: #f3f4f6;
+        color: #374151;
+    }
+    .st-succ {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .st-pend {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .st-fail {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .card-table {
+        border: 0;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+</style>
 
-function viewOrderDetail(orderId) {
-  // TODO: Implement order detail view
-  alert('Tính năng xem chi tiết đơn hàng đang được phát triển!');
-}
-</script>
+<div class="od-hero">
+    <div class="container">
+        <h2 class="od-title">Đơn hàng của tôi</h2>
+    </div>
+</div>
 
-<%- include('../partials/footer.ejs') %>
+<div class="container my-4">
+    <% if (!orders || orders.length === 0) { %>
+    <div class="alert alert-light border">Bạn chưa có đơn hàng nào.</div>
+    <% } else { %>
+    <div class="card card-table">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Trạng thái</th>
+                        <th>Thanh toán</th>
+                        <th>Tổng tiền</th>
+                        <th>Ngày tạo</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach(o => { const pst = (o.payment?.status)||'-'; %>
+                    <tr>
+                        <td class="fw-semibold"><%= o._id %></td>
+                        <td>
+                            <% if (o.status==='paid') { %>
+                            <span class="badge badge-status st-paid">PAID</span>
+                            <% } else if (o.status==='cancel') { %>
+                            <span class="badge badge-status st-cancel">CANCEL</span>
+                            <% } else { %>
+                            <span class="badge badge-status st-unpaid">UNPAID</span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if (pst==='success') { %>
+                            <span class="badge badge-status st-succ">SUCCESS</span>
+                            <% } else if (pst==='pending') { %>
+                            <span class="badge badge-status st-pend">PENDING</span>
+                            <% } else if (pst==='failed') { %>
+                            <span class="badge badge-status st-fail">FAILED</span>
+                            <% } else { %>
+                            <span class="badge bg-secondary">-</span>
+                            <% } %>
+                        </td>
+                        <td><%= Number(o.total||0).toLocaleString('vi-VN') %> ₫</td>
+                        <td><%= new Date(o.createdAt).toLocaleString('vi-VN') %></td>
+                        <td><a class="btn btn-sm btn-outline-primary" href="/orders/<%= o._id %>">Xem</a></td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <% } %>
+</div>
 
+<%- include('../partials/footer') %>

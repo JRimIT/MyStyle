@@ -1,30 +1,42 @@
-import mongoose from "mongoose";
-import "./product.model.js";
-import "./user.model.js";
+import mongoose from 'mongoose';
 
-const orderSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  items: [
+const PaymentSchema = new mongoose.Schema(
     {
-      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
-      quantity: Number,
-      price: Number,
+        status: { type: String, enum: ['pending', 'success', 'failed'], default: 'pending' },
+        amount: Number,
+        bankCode: String,
+        bankTranNo: String,
+        txnNo: String,
+        payDate: String,
+        message: String,
+        via: String,
     },
-  ],
-  totalPrice: Number,
-  status: { 
-    type: String, 
-    enum: ["Pending", "Processing", "Shipping", "Delivered", "Cancelled"],
-    default: "Pending" 
-  },
-  address: String,
-  paymentMethod: { type: String, default: "cod" }, // 'wallet' hoặc 'cod'
-  cancelledAt: { type: Date, default: null },
-  cancelReason: { type: String, default: null },
-  refunded: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-});
+    { _id: false },
+);
 
-const Order = mongoose.models.order || mongoose.model("Order", orderSchema);
+const OrderSchema = new mongoose.Schema(
+    {
+        userId: { type: mongoose.Types.ObjectId, ref: 'User' },
+        items: [
+            {
+                productId: String,
+                name: String,
+                price: Number,
+                qty: Number,
+                imageUrl: String,
+            },
+        ],
+        total: Number, // VND (không *100)
+        status: { type: String, enum: ['unpaid', 'paid', 'cancel'], default: 'unpaid' },
+        shippingAddress: {
+            fullName: String,
+            phone: String,
+            address: String,
+            note: String,
+        },
+        payment: PaymentSchema,
+    },
+    { timestamps: true },
+);
 
-export default Order;
+export default mongoose.model('Order', OrderSchema);

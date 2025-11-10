@@ -1,5 +1,9 @@
 <!-- Bootstrap Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script src="/js/searchBar.js"></script>
 <link rel="stylesheet" href="/css/navbar.css" />
 
@@ -8,7 +12,6 @@
         <!-- Logo -->
         <a class="navbar-brand" href="/Home">
             <img src="/logo_mystyle.png" alt="Logo" width="40" height="40" />
-            <!-- <img src="https://icon2.cleanpng.com/ci3/rlv/wwj/ach3bbbvi.webp" alt="Logo" width="40" height="40" /> -->
         </a>
 
         <!-- Toggle for mobile -->
@@ -20,14 +23,12 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/Home">Home</a></li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/menu">Menu</a>
-                </li>
+                <li class="nav-item"><a class="nav-link" href="/menu">Menu</a></li>
                 <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/contact">Contact</a>
-                </li>
+                <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
                 <li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+                <li class="nav-item"><a class="nav-link" href="/orders">Orders</a></li>
+                <li class="nav-item"><a class="nav-link" href="/wishlist">Wishlist</a></li>
 
                 <!-- Admin -->
                 <% if (user && user.role==='admin' ) { %>
@@ -57,18 +58,15 @@
                 <!-- Shipper -->
                 <% if (user && user.role==='shipper' ) { %>
                 <li class="nav-item">
-                    <a class="nav-link" href="/shipper/dashboard"> <i class="fas fa-truck"></i> Shipper Dashboard </a>
+                    <a class="nav-link" href="/shipper/dashboard"><i class="fas fa-truck"></i> Shipper Dashboard</a>
                 </li>
                 <% } %>
             </ul>
 
-            <!-- Search bar -->
+            <!-- Search bar + cart + user -->
             <div class="d-flex search-bar me-4 position-relative" role="search">
-                <!-- Include Search Bar Component -->
-                <%- include('searchBar') %>
-                <!-- Cart Icon -->
-                <% if (typeof cartCount !== 'undefined') { %>
-                <div class="cart-icon position-relative">
+                <%- include('searchBar') %> <% if (typeof cartCount !== 'undefined') { %>
+                <div class="cart-icon position-relative me-3">
                     <a href="/view/cart" class="position-relative text-decoration-none text-dark">
                         <i class="fas fa-shopping-cart fa-lg"></i>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -76,16 +74,15 @@
                         </span>
                     </a>
                 </div>
-                <% } %>
-
-                <!-- Balance Display -->
-                <% if (user) { %>
-                <div class="balance-display">
-                    <i class="fas fa-wallet text-success"></i>
-                    <span class="balance-amount" id="navBalance">
-                        <%= user.balance ? user.balance.toLocaleString('vi-VN') : 0 %>
-                    </span>
-                    <span class="text-muted">VND</span>
+                <% } %> <% if (user) { %>
+                <div class="d-flex align-items-center me-3">
+                    <div class="balance-display">
+                        <i class="fas fa-wallet text-success"></i>
+                        <span class="balance-amount" id="navBalance"
+                            ><%= user.balance ? user.balance.toLocaleString('vi-VN') : 0 %></span
+                        >
+                        <span class="text-muted">VND</span>
+                    </div>
                 </div>
                 <% } %>
 
@@ -108,18 +105,21 @@
                         />
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
-                        <li><a class="dropdown-item" href="/profile">👤 Profile</a></li>
+                        <li><a class="dropdown-item" href="/profile">Profile</a></li>
                         <li>
-                            <a class="dropdown-item recharge-item" href="/wallet">
-                                <i class="fas fa-plus-circle"></i> Nạp tiền
-                            </a>
+                            <a class="dropdown-item wallet-item" href="/wallet"
+                                ><i class="fas fa-wallet"></i> Ví của tôi</a
+                            >
                         </li>
-                        <li><a class="dropdown-item" href="/orders">📦 Orders</a></li>
-                        <li><a class="dropdown-item" href="/settings">⚙️ Settings</a></li>
                         <li>
-                            <hr class="dropdown-divider" />
+                            <a class="dropdown-item recharge-item" href="/wallet"
+                                ><i class="fas fa-plus-circle"></i> Nạp tiền</a
+                            >
                         </li>
-                        <li><a class="dropdown-item text-danger" href="/">🚪 Logout</a></li>
+                        <li><a class="dropdown-item" href="/orders">Orders</a></li>
+                        <li><a class="dropdown-item" href="/settings">Settings</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li><a class="dropdown-item text-danger" href="/">Logout</a></li>
                     </ul>
                 </div>
                 <% } else { %>

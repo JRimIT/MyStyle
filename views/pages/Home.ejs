@@ -51,6 +51,11 @@
     </button>
   </div>
 
+
+
+  <!-- Categories Section -->
+  <%- include('../partials/categoryFilter.ejs') %>
+
   <!-- Product Section -->
   <div class="products-section" data-aos="fade-up">
     <!-- Product Header -->
@@ -63,7 +68,7 @@
           <p class="product-subtitle">Khám phá bộ sưu tập thời trang độc đáo và phong cách</p>
         </div>
         <div class="col-lg-6">
-          <div class="product-stats d-flex justify-content-center justify-content-lg-end gap-2">
+          <div class="product-stats d-flex justify-content-center justify-content-lg-end gap-4">
             <div class="stat-item">
               <i class="fas fa-tshirt"></i>
               <span class="stat-number" id="totalProducts"><%= listFeatureFood.length %></span>
@@ -170,7 +175,7 @@
            data-price="<%= clothes.price %>">
         <div class="card h-100">
           <div class="product-image-wrapper position-relative">
-            <img src="<%= clothes.imageUrl%>" alt="<%= clothes.name %>" />
+            <img src="/img?url=<%= encodeURIComponent(clothes.imageUrl||'') %>" alt="<%= clothes.name %>" referrerpolicy="no-referrer" />
             <% if (clothes.isCurrentlyOnSale) { %>
               <div class="sale-badge">
                 <% if (clothes.promotionLabel) { %>
@@ -245,6 +250,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
+          credentials: 'include',
           body: JSON.stringify({
             productId: productId,
             quantity: quantity
@@ -394,5 +400,53 @@
         applyFilters();
       });
     });
+  </script>
+  <script>
+    function injectWishlistButtons(){
+      try{
+        const cards = document.querySelectorAll('.product-item');
+        cards.forEach(card => {
+          // find the qty input to infer productId from its id
+          const qty = card.querySelector('input[id^="order-qty-"]');
+          const group = card.querySelector('.d-flex.justify-content-center.align-items-center.mb-2');
+          if(!qty || !group) return;
+          const idMatch = qty.id.match(/^order-qty-(.+)$/);
+          if(!idMatch) return;
+          const pid = idMatch[1];
+          // avoid duplicate
+          if(group.querySelector('.btn-wishlist')) return;
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-outline-danger btn-wishlist';
+          btn.title = 'Thêm vào wishlist';
+          btn.innerHTML = '<i class="fas fa-heart"></i>';
+          btn.onclick = () => addToWishlist(pid, btn);
+          group.appendChild(btn);
+        });
+      }catch(e){ console.error(e); }
+    }
+
+    document.addEventListener('DOMContentLoaded', injectWishlistButtons);
+
+    async function addToWishlist(productId, btn){
+      try{
+        const res = await fetch('/wishlist/add',{
+          method:'POST',
+          headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
+          body: JSON.stringify({ productId })
+        });
+        if(!res.ok){
+          const data = await res.json().catch(()=>({}));
+          alert(data.message || 'Không thể thêm wishlist.');
+          return;
+        }
+        btn.classList.remove('btn-outline-danger');
+        btn.classList.add('btn-danger');
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.disabled = true;
+      }catch(e){
+        console.error(e);
+        alert('Lỗi kết nối khi thêm wishlist.');
+      }
+    }
   </script>
 </div>

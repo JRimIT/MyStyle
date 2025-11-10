@@ -63,7 +63,7 @@
           <p class="product-subtitle">Khám phá bộ sưu tập thời trang độc đáo và phong cách</p>
         </div>
         <div class="col-lg-6">
-          <div class="product-stats d-flex justify-content-center justify-content-lg-end gap-4">
+          <div class="product-stats d-flex justify-content-center justify-content-lg-end gap-2">
             <div class="stat-item">
               <i class="fas fa-tshirt"></i>
               <span class="stat-number" id="totalProducts"><%= listFeatureFood.length %></span>
@@ -161,7 +161,7 @@
     <div id="noResults" class="text-center text-muted mb-4" style="display: none;">
       <p>Không tìm thấy sản phẩm nào phù hợp với từ khóa của bạn.</p>
     </div>
-    <div class="row row-cols-1 row-cols-md-3 g-4" id="productGrid">
+    <div class="row row-cols-1 row-cols-md-5 g-4" id="productGrid">
       <% listFeatureFood.forEach(clothes => {%>
       <div class="col product-item" data-aos="zoom-in" 
            data-name="<%= (clothes.name || '').toLowerCase() %>" 

@@ -1,21 +1,16 @@
-<<<<<<< HEAD
 /* Modern Profile Design */
 body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-attachment: fixed;
 }
 
-.profile-container {
-  animation: slideInUp 0.6s ease-out;
-=======
-/* Modern Profile & Order History */
 .profile-container,
 .settings-container {
   max-width: 600px;
   margin: auto;
   padding-top: 100px;
   min-height: 100vh;
->>>>>>> main
+  animation: slideInUp 0.6s ease-out;
 }
 
 .card {

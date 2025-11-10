@@ -1,132 +1,137 @@
 <%- include('../partials/header.ejs') %>
 
 <div class="bodyPage">
-  <!-- Truyền user an toàn (có thể là null) -->
-  <%- include('../partials/navbar.ejs', { user: (typeof user !== 'undefined' ? user : null) }) %>
+    <!-- Truyền user an toàn (có thể là null) -->
+    <%- include('../partials/navbar.ejs', { user: (typeof user !== 'undefined' ? user : null) }) %>
 
-  <div class="container mt-5 pt-5">
-    <h2>Your Cart</h2>
+    <div class="container mt-5 pt-5">
+        <h2>Your Cart</h2>
 
-    <div class="row mt-4">
-      <!-- Cart Items -->
-      <div class="col-md-8">
-        <div id="cartContainer">
-          <p class="text-muted">Loading cart...</p>
+        <div class="row mt-4">
+            <!-- Cart Items -->
+            <div class="col-md-8">
+                <div id="cartContainer">
+                    <p class="text-muted">Loading cart...</p>
+                </div>
+            </div>
+
+            <!-- Quick Add Form -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Add to Cart</h5>
+                        <form id="addForm" class="mt-3" novalidate>
+                            <div class="mb-3">
+                                <label class="form-label">Product ID</label>
+                                <input type="text" id="addProductId" class="form-control" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" id="addQuantity" class="form-control" min="1" value="1" required />
+                            </div>
+                            <button id="addBtn" type="submit" class="btn btn-primary w-100">Add</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title">Quick Tips</h6>
+                        <ul class="small text-muted mb-0">
+                            <li>Product ID lấy từ trang chi tiết sản phẩm</li>
+                            <li>Có thể chỉnh số lượng trực tiếp trong giỏ</li>
+                            <li>Remove để xoá sản phẩm khỏi giỏ</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <!-- Quick Add Form -->
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body">
-            <h5>Add to Cart</h5>
-            <form id="addForm" class="mt-3" novalidate>
-              <div class="mb-3">
-                <label class="form-label">Product ID</label>
-                <input type="text" id="addProductId" class="form-control" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Quantity</label>
-                <input type="number" id="addQuantity" class="form-control" min="1" value="1" required>
-              </div>
-              <button id="addBtn" type="submit" class="btn btn-primary w-100">Add</button>
-            </form>
-          </div>
-        </div>
-
-        <div class="card mt-3">
-          <div class="card-body">
-            <h6 class="card-title">Quick Tips</h6>
-            <ul class="small text-muted mb-0">
-              <li>Product ID lấy từ trang chi tiết sản phẩm</li>
-              <li>Có thể chỉnh số lượng trực tiếp trong giỏ</li>
-              <li>Remove để xoá sản phẩm khỏi giỏ</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div><!-- row -->
-  </div><!-- container -->
-</div><!-- bodyPage -->
+        <!-- row -->
+    </div>
+    <!-- container -->
+</div>
+<!-- bodyPage -->
 
 <script>
-  // ===== Helpers =====
-  const container = document.getElementById('cartContainer');
+    // ===== Helpers =====
+    const container = document.getElementById('cartContainer');
 
-  const asInt = (v, def = 1) => {
-    const n = parseInt(v, 10);
-    return Number.isFinite(n) && n > 0 ? n : def;
-  };
-  const asNum = (v, def = 0) => {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : def;
-  };
-  const fmt = (n) => asNum(n).toLocaleString('vi-VN') + ' VND';
+    const asInt = (v, def = 1) => {
+        const n = parseInt(v, 10);
+        return Number.isFinite(n) && n > 0 ? n : def;
+    };
+    const asNum = (v, def = 0) => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : def;
+    };
+    const fmt = (n) => asNum(n).toLocaleString('vi-VN') + ' VND';
 
-  async function readJsonOrThrow(res) {
-    let data = null;
-    try { data = await res.json(); } catch {}
-    if (!res.ok) {
-      const msg = (data && (data.message || data.error)) || ('HTTP ' + res.status);
-      const err = new Error(msg);
-      err.status = res.status;
-      throw err;
-    }
-    return data;
-  }
-
-  // ===== API (session-based) =====
-  async function apiGetCart() {
-    const res = await fetch('/api/cart', { credentials: 'include' });
-    return readJsonOrThrow(res); // { cart, subtotal }
-  }
-
-  async function apiAddItem({ productId, quantity }) {
-    const res = await fetch('/api/cart/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ productId, quantity })
-    });
-    return readJsonOrThrow(res);
-  }
-
-  async function apiSetQty({ productId, quantity }) {
-    const res = await fetch('/api/cart/item', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ productId, quantity })
-    });
-    return readJsonOrThrow(res);
-  }
-
-  async function apiRemoveItem({ productId }) {
-    const res = await fetch('/api/cart/item', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ productId })
-    });
-    return readJsonOrThrow(res);
-  }
-
-  // ===== Render =====
-  function renderCart(cart, subtotalFromApi) {
-    const items = Array.isArray(cart?.items) ? cart.items : [];
-
-    if (!items.length) {
-      container.innerHTML = '<p class="text-muted">Your cart is empty</p>';
-      return;
+    async function readJsonOrThrow(res) {
+        let data = null;
+        try {
+            data = await res.json();
+        } catch {}
+        if (!res.ok) {
+            const msg = (data && (data.message || data.error)) || 'HTTP ' + res.status;
+            const err = new Error(msg);
+            err.status = res.status;
+            throw err;
+        }
+        return data;
     }
 
-    const computedSubtotal = items.reduce((sum, it) => {
-      const p = it?.product || {};
-      return sum + asNum(p.price) * asInt(it?.quantity);
-    }, 0);
-    const subtotal = asNum(subtotalFromApi, computedSubtotal);
+    // ===== API (session-based) =====
+    async function apiGetCart() {
+        const res = await fetch('/api/cart', { credentials: 'include' });
+        return readJsonOrThrow(res); // { cart, subtotal }
+    }
 
-    let html = `
+    async function apiAddItem({ productId, quantity }) {
+        const res = await fetch('/api/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ productId, quantity }),
+        });
+        return readJsonOrThrow(res);
+    }
+
+    async function apiSetQty({ productId, quantity }) {
+        const res = await fetch('/api/cart/item', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ productId, quantity }),
+        });
+        return readJsonOrThrow(res);
+    }
+
+    async function apiRemoveItem({ productId }) {
+        const res = await fetch('/api/cart/item', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ productId }),
+        });
+        return readJsonOrThrow(res);
+    }
+
+    // ===== Render =====
+    function renderCart(cart, subtotalFromApi) {
+        const items = Array.isArray(cart?.items) ? cart.items : [];
+
+        if (!items.length) {
+            container.innerHTML = '<p class="text-muted">Your cart is empty</p>';
+            return;
+        }
+
+        const computedSubtotal = items.reduce((sum, it) => {
+            const p = it?.product || {};
+            return sum + asNum(p.price) * asInt(it?.quantity);
+        }, 0);
+        const subtotal = asNum(subtotalFromApi, computedSubtotal);
+
+        let html = `
       <div class="table-responsive">
         <table class="table align-middle">
           <thead>
@@ -141,21 +146,21 @@
           <tbody>
     `;
 
-    items.forEach((it) => {
-      const p = it?.product || {};
-      const pid = p?._id || '';
-      const price = asNum(p?.price);
-      const qty = asInt(it?.quantity);
-      const lineTotal = price * qty;
+        items.forEach((it) => {
+            const p = it?.product || {};
+            const pid = p?._id || '';
+            const price = asNum(p?.price);
+            const qty = asInt(it?.quantity);
+            const lineTotal = price * qty;
 
-      html += `
+            html += `
         <tr data-product-id="${pid}">
           <td>
             <div class="d-flex align-items-center">
               ${
-                p?.imageUrl
-                  ? `<img src="${p.imageUrl}" alt="" class="me-2" style="width:60px;height:60px;object-fit:cover;">`
-                  : `<div class="bg-light me-2" style="width:60px;height:60px;"></div>`
+                  p?.imageUrl
+                      ? `<img src="${p.imageUrl}" alt="" class="me-2" style="width:60px;height:60px;object-fit:cover;">`
+                      : `<div class="bg-light me-2" style="width:60px;height:60px;"></div>`
               }
               <div>
                 <div class="fw-semibold">${p?.name ? String(p.name) : 'Unknown Product'}</div>
@@ -176,9 +181,9 @@
           </td>
         </tr>
       `;
-    });
+        });
 
-    html += `
+        html += `
           </tbody>
         </table>
       </div>
@@ -187,70 +192,71 @@
       </div>
     `;
 
-    container.innerHTML = html;
-  }
-
-  // ===== UI actions =====
-  async function fetchAndRender() {
-    try {
-      const data = await apiGetCart();
-      renderCart(data.cart, data.subtotal);
-    } catch (err) {
-      if (err.status === 401) {
-        container.innerHTML = '<p class="text-muted">Please login to view cart</p>';
-      } else {
-        container.innerHTML = '<p class="text-danger">Error loading cart: ' + (err.message || 'Unknown') + '</p>';
-      }
+        container.innerHTML = html;
     }
-  }
 
-  async function updateQty(productId, quantity) {
-    const q = asInt(quantity);
-    if (q < 1) return fetchAndRender();
-    try {
-      await apiSetQty({ productId, quantity: q });
-      await fetchAndRender();
-    } catch (err) {
-      alert('Error updating quantity: ' + (err.message || 'Unknown'));
-      await fetchAndRender();
+    // ===== UI actions =====
+    async function fetchAndRender() {
+        try {
+            const data = await apiGetCart();
+            renderCart(data.cart, data.subtotal);
+        } catch (err) {
+            if (err.status === 401) {
+                container.innerHTML = '<p class="text-muted">Please login to view cart</p>';
+            } else {
+                container.innerHTML =
+                    '<p class="text-danger">Error loading cart: ' + (err.message || 'Unknown') + '</p>';
+            }
+        }
     }
-  }
 
-  async function removeItem(productId) {
-    if (!confirm('Remove this item from cart?')) return;
-    try {
-      await apiRemoveItem({ productId });
-      await fetchAndRender();
-    } catch (err) {
-      alert('Error removing item: ' + (err.message || 'Unknown'));
+    async function updateQty(productId, quantity) {
+        const q = asInt(quantity);
+        if (q < 1) return fetchAndRender();
+        try {
+            await apiSetQty({ productId, quantity: q });
+            await fetchAndRender();
+        } catch (err) {
+            alert('Error updating quantity: ' + (err.message || 'Unknown'));
+            await fetchAndRender();
+        }
     }
-  }
 
-  document.getElementById('addForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('addBtn');
-    const productId = document.getElementById('addProductId').value.trim();
-    const quantity = asInt(document.getElementById('addQuantity').value, 1);
-    if (!productId) return alert('Please enter a product ID');
-
-    try {
-      btn.disabled = true;
-      await apiAddItem({ productId, quantity });
-      document.getElementById('addProductId').value = '';
-      document.getElementById('addQuantity').value = '1';
-      await fetchAndRender();
-    } catch (err) {
-      alert('Error adding item: ' + (err.message || 'Unknown'));
-    } finally {
-      btn.disabled = false;
+    async function removeItem(productId) {
+        if (!confirm('Remove this item from cart?')) return;
+        try {
+            await apiRemoveItem({ productId });
+            await fetchAndRender();
+        } catch (err) {
+            alert('Error removing item: ' + (err.message || 'Unknown'));
+        }
     }
-  });
 
-  // Expose for inline handlers
-  window.updateQty = updateQty;
-  window.removeItem = removeItem;
+    document.getElementById('addForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('addBtn');
+        const productId = document.getElementById('addProductId').value.trim();
+        const quantity = asInt(document.getElementById('addQuantity').value, 1);
+        if (!productId) return alert('Please enter a product ID');
 
-  document.addEventListener('DOMContentLoaded', fetchAndRender);
+        try {
+            btn.disabled = true;
+            await apiAddItem({ productId, quantity });
+            document.getElementById('addProductId').value = '';
+            document.getElementById('addQuantity').value = '1';
+            await fetchAndRender();
+        } catch (err) {
+            alert('Error adding item: ' + (err.message || 'Unknown'));
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    // Expose for inline handlers
+    window.updateQty = updateQty;
+    window.removeItem = removeItem;
+
+    document.addEventListener('DOMContentLoaded', fetchAndRender);
 </script>
 
 <%- include('../partials/footer.ejs') %>

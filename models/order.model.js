@@ -12,9 +12,16 @@ const orderSchema = new mongoose.Schema({
     },
   ],
   totalPrice: Number,
-  status: { type: String, default: "Pending" },
+  status: { 
+    type: String, 
+    enum: ["Pending", "Processing", "Shipping", "Delivered", "Cancelled"],
+    default: "Pending" 
+  },
   address: String,
   paymentMethod: { type: String, default: "cod" }, // 'wallet' hoặc 'cod'
+  cancelledAt: { type: Date, default: null },
+  cancelReason: { type: String, default: null },
+  refunded: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });
 

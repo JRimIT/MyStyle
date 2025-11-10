@@ -198,4 +198,59 @@ router.post("/admin/products/delete/:productId", async (req, res) => {
   }
 });
 
+// Admin: Categories management
+router.get("/admin/categories", async (req, res) => {
+  try {
+    const Category = (await import("../models/category.model.js")).default;
+    const categories = await Category.find()
+      .sort({ order: 1, name: 1 })
+      .populate("parentCategory", "name slug");
+
+    let user = req.user;
+    if (req.user && req.user.userId) {
+      user = await User.findById(req.user.userId);
+    }
+    const cartCount = req.user?.userId
+      ? await countProduct(req.user.userId)
+      : 0;
+
+    res.render("admin/categories", {
+      categories,
+      user,
+      cartCount,
+    });
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Admin: Vouchers management
+router.get("/admin/vouchers", async (req, res) => {
+  try {
+    const Voucher = (await import("../models/voucher.model.js")).default;
+    const vouchers = await Voucher.find()
+      .sort({ createdAt: -1 })
+      .populate("applicableProducts", "name")
+      .populate("usedBy.userId", "username");
+
+    let user = req.user;
+    if (req.user && req.user.userId) {
+      user = await User.findById(req.user.userId);
+    }
+    const cartCount = req.user?.userId
+      ? await countProduct(req.user.userId)
+      : 0;
+
+    res.render("admin/vouchers", {
+      vouchers,
+      user,
+      cartCount,
+    });
+  } catch (error) {
+    console.error("Error fetching vouchers:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 export default router;

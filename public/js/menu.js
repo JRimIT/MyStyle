@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // name click -> productDetail route
       const nameEl = col.querySelector('.product-name');
       nameEl.addEventListener('click', ()=>{
-        window.location.href = `/product/${p._id}`;
+        window.location.href = `/menu/${p._id}`;
       });
     });
 

@@ -11,6 +11,19 @@
     top: 16px;
     z-index: 1050;
     transition: box-shadow 0.3s, background 0.3s;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px) saturate(180%);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    margin: 18px auto 0 auto;
+    max-width: 1200px;
+    padding: 0.5rem 2rem;
+    position: fixed;
+    top: 16px;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    transition: box-shadow 0.3s, background 0.3s;
 }
 
 .navbar-brand img {
@@ -261,7 +274,48 @@
     text-align: center;
 }
 
-/* Wallet badge */
+/* Balance Display */
+.balance-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(67, 233, 123, 0.1) 0%, rgba(56, 249, 215, 0.1) 100%);
+    padding: 8px 16px;
+    border-radius: 25px;
+    border: 2px solid rgba(67, 233, 123, 0.3);
+    transition: all 0.3s ease;
+}
+
+.balance-display:hover {
+    border-color: rgba(67, 233, 123, 0.6);
+    box-shadow: 0 4px 15px rgba(67, 233, 123, 0.2);
+}
+
+.balance-display i {
+    font-size: 1.1rem;
+    animation: wiggle 3s infinite;
+}
+
+@keyframes wiggle {
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-5deg);
+    }
+    75% {
+        transform: rotate(5deg);
+    }
+}
+
+.balance-amount {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #43e97b;
+}
+
+/* Old badge style for backward compatibility */
 .badge.bg-success {
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%) !important;
     color: #fff !important;
@@ -307,6 +361,59 @@
 
 .dropdown-menu .dropdown-item:hover {
     background: #ff6347;
+    color: #fff;
+}
+
+/* Wallet and Recharge items special styling */
+.dropdown-menu .wallet-item {
+    background: linear-gradient(135deg, rgba(67, 233, 123, 0.1) 0%, rgba(56, 249, 215, 0.1) 100%);
+    border: 1px solid rgba(67, 233, 123, 0.3);
+}
+
+.dropdown-menu .wallet-item i {
+    color: #43e97b;
+    font-size: 1.1rem;
+}
+
+.dropdown-menu .wallet-item:hover {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: #fff;
+    border-color: #43e97b;
+}
+
+.dropdown-menu .wallet-item:hover i {
+    color: #fff;
+}
+
+.dropdown-menu .recharge-item {
+    background: linear-gradient(135deg, rgba(255, 99, 71, 0.1) 0%, rgba(255, 140, 66, 0.1) 100%);
+    border: 1px solid rgba(255, 99, 71, 0.3);
+    font-weight: 600;
+}
+
+.dropdown-menu .recharge-item i {
+    color: #ff6347;
+    font-size: 1.1rem;
+    animation: pulse-plus 2s infinite;
+}
+
+@keyframes pulse-plus {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+}
+
+.dropdown-menu .recharge-item:hover {
+    background: linear-gradient(135deg, #ff6347 0%, #ff8c42 100%);
+    color: #fff;
+    border-color: #ff6347;
+}
+
+.dropdown-menu .recharge-item:hover i {
     color: #fff;
 }
 

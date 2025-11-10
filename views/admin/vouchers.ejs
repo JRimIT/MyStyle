@@ -1,0 +1,483 @@
+<%- include('../partials/header.ejs') %>
+<link rel="stylesheet" href="/css/navbar.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+<style>
+  body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding-top: 100px;
+  }
+
+  .admin-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+
+  .page-header {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  }
+
+  .vouchers-table-container {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  }
+
+  .btn-add-voucher {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-add-voucher:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+  }
+
+  .voucher-code {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 5px 10px;
+    border-radius: 8px;
+    display: inline-block;
+  }
+
+  .badge-type {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .badge-percentage {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+  }
+
+  .badge-fixed {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .badge-freeship {
+    background: linear-gradient(135deg, #ff6347 0%, #ff8c42 100%);
+    color: white;
+  }
+
+  .status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .status-active {
+    background: #43e97b;
+    color: white;
+  }
+
+  .status-inactive {
+    background: #fa709a;
+    color: white;
+  }
+
+  .status-expired {
+    background: #999;
+    color: white;
+  }
+
+  .modal-content {
+    border-radius: 20px;
+    border: none;
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px 20px 0 0;
+  }
+</style>
+
+<%- include('../partials/navbar.ejs') %>
+
+<div class="admin-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1><i class="fas fa-ticket-alt"></i> Quản lý Voucher</h1>
+        <p class="text-muted mb-0">Quản lý các mã giảm giá và khuyến mãi</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-warning" onclick="fixVoucherCodes()" title="Sửa format các mã voucher cũ">
+          <i class="fas fa-tools"></i> Fix Codes
+        </button>
+        <button class="btn btn-add-voucher" data-bs-toggle="modal" data-bs-target="#addVoucherModal">
+          <i class="fas fa-plus"></i> Tạo voucher mới
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vouchers Table -->
+  <div class="vouchers-table-container">
+    <table id="vouchersTable" class="table table-hover">
+      <thead>
+        <tr>
+          <th>Mã voucher</th>
+          <th>Tên</th>
+          <th>Loại</th>
+          <th>Giá trị</th>
+          <th>Điều kiện</th>
+          <th>Thời gian</th>
+          <th>Trạng thái</th>
+          <th>Sử dụng</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% vouchers.forEach(voucher => { %>
+        <tr>
+          <td>
+            <span class="voucher-code"><%= voucher.code %></span>
+          </td>
+          <td><strong><%= voucher.name %></strong></td>
+          <td>
+            <% if (voucher.type === 'percentage') { %>
+              <span class="badge badge-type badge-percentage">%</span>
+            <% } else if (voucher.type === 'fixed') { %>
+              <span class="badge badge-type badge-fixed">VND</span>
+            <% } else { %>
+              <span class="badge badge-type badge-freeship">Free Ship</span>
+            <% } %>
+          </td>
+          <td>
+            <% if (voucher.type === 'percentage') { %>
+              <%= voucher.discountValue %>% 
+              <% if (voucher.maxDiscountAmount) { %>
+                <br><small>(Tối đa: <%= voucher.maxDiscountAmount.toLocaleString('vi-VN') %> VND)</small>
+              <% } %>
+            <% } else if (voucher.type === 'fixed') { %>
+              <%= voucher.discountValue.toLocaleString('vi-VN') %> VND
+            <% } else { %>
+              Miễn phí vận chuyển
+            <% } %>
+          </td>
+          <td>
+            <% if (voucher.minPurchaseAmount > 0) { %>
+              Đơn tối thiểu: <%= voucher.minPurchaseAmount.toLocaleString('vi-VN') %> VND
+            <% } else { %>
+              Không có điều kiện
+            <% } %>
+          </td>
+          <td>
+            <small>
+              Từ: <%= new Date(voucher.startDate).toLocaleDateString('vi-VN') %><br>
+              Đến: <%= new Date(voucher.endDate).toLocaleDateString('vi-VN') %>
+            </small>
+          </td>
+          <td>
+            <% 
+              const now = new Date();
+              const isActive = voucher.isActive;
+              const isInDateRange = now >= voucher.startDate && now <= voucher.endDate;
+              const isNotExpired = !voucher.usageLimit || voucher.usedCount < voucher.usageLimit;
+              const status = isActive && isInDateRange && isNotExpired ? 'active' : 
+                           !isActive ? 'inactive' : 'expired';
+            %>
+            <% if (status === 'active') { %>
+              <span class="status-badge status-active">Hoạt động</span>
+            <% } else if (status === 'inactive') { %>
+              <span class="status-badge status-inactive">Tạm khóa</span>
+            <% } else { %>
+              <span class="status-badge status-expired">Hết hạn</span>
+            <% } %>
+          </td>
+          <td>
+            <%= voucher.usedCount || 0 %> / 
+            <%= voucher.usageLimit ? voucher.usageLimit : '∞' %>
+          </td>
+          <td>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-primary" onclick="editVoucher('<%= voucher._id %>')">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="deleteVoucher('<%= voucher._id %>', '<%= voucher.code %>')">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Voucher Modal -->
+<div class="modal fade" id="addVoucherModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Tạo voucher mới</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addVoucherForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Mã voucher *</label>
+              <input type="text" class="form-control" name="code" required maxlength="20" 
+                     placeholder="VD: SALE10" style="text-transform: uppercase;">
+              <small class="text-muted">Mã sẽ tự động chuyển thành chữ hoa</small>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Tên voucher *</label>
+              <input type="text" class="form-control" name="name" required>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Mô tả</label>
+            <textarea class="form-control" name="description" rows="2"></textarea>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Loại voucher *</label>
+              <select class="form-select" name="type" id="voucherType" required onchange="updateVoucherType()">
+                <option value="percentage">Giảm theo phần trăm (%)</option>
+                <option value="fixed">Giảm số tiền cố định (VND)</option>
+                <option value="free_shipping">Miễn phí vận chuyển</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3" id="discountValueGroup">
+              <label class="form-label">Giá trị giảm *</label>
+              <div class="input-group">
+                <input type="number" class="form-control" name="discountValue" required min="0" step="0.01">
+                <span class="input-group-text" id="discountUnit">%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Đơn tối thiểu (VND)</label>
+              <input type="number" class="form-control" name="minPurchaseAmount" value="0" min="0">
+            </div>
+            <div class="col-md-6 mb-3" id="maxDiscountGroup">
+              <label class="form-label">Giảm tối đa (VND)</label>
+              <input type="number" class="form-control" name="maxDiscountAmount" min="0" 
+                     placeholder="Chỉ áp dụng cho %">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Ngày bắt đầu *</label>
+              <input type="datetime-local" class="form-control" name="startDate" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Ngày kết thúc *</label>
+              <input type="datetime-local" class="form-control" name="endDate" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Giới hạn sử dụng</label>
+              <input type="number" class="form-control" name="usageLimit" min="1" 
+                     placeholder="Để trống = không giới hạn">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Số lần mỗi user</label>
+              <input type="number" class="form-control" name="usageLimitPerUser" value="1" min="1">
+            </div>
+          </div>
+
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" name="isActive" checked>
+            <label class="form-check-label">Kích hoạt ngay</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-add-voucher" onclick="submitAddVoucher()">
+          <i class="fas fa-save"></i> Tạo voucher
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    $('#vouchersTable').DataTable({
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json'
+      },
+      order: [[0, 'desc']]
+    });
+  });
+
+  function updateVoucherType() {
+    const type = document.getElementById('voucherType').value;
+    const discountValueGroup = document.getElementById('discountValueGroup');
+    const maxDiscountGroup = document.getElementById('maxDiscountGroup');
+    const discountUnit = document.getElementById('discountUnit');
+    const discountInput = discountValueGroup.querySelector('input[name="discountValue"]');
+
+    if (type === 'free_shipping') {
+      discountValueGroup.style.display = 'none';
+      maxDiscountGroup.style.display = 'none';
+      discountInput.required = false;
+    } else {
+      discountValueGroup.style.display = 'block';
+      discountInput.required = true;
+      
+      if (type === 'percentage') {
+        discountUnit.textContent = '%';
+        maxDiscountGroup.style.display = 'block';
+        discountInput.max = 100;
+        discountInput.step = '1';
+      } else {
+        discountUnit.textContent = 'VND';
+        maxDiscountGroup.style.display = 'none';
+        discountInput.max = null;
+        discountInput.step = '1000';
+      }
+    }
+  }
+
+  async function submitAddVoucher() {
+    const form = document.getElementById('addVoucherForm');
+    const formData = new FormData(form);
+    
+    const data = {
+      code: formData.get('code'),
+      name: formData.get('name'),
+      description: formData.get('description'),
+      type: formData.get('type'),
+      discountValue: parseFloat(formData.get('discountValue')) || 0,
+      minPurchaseAmount: parseInt(formData.get('minPurchaseAmount')) || 0,
+      maxDiscountAmount: formData.get('maxDiscountAmount') ? parseInt(formData.get('maxDiscountAmount')) : null,
+      startDate: new Date(formData.get('startDate')),
+      endDate: new Date(formData.get('endDate')),
+      usageLimit: formData.get('usageLimit') ? parseInt(formData.get('usageLimit')) : null,
+      usageLimitPerUser: parseInt(formData.get('usageLimitPerUser')) || 1,
+      isActive: formData.get('isActive') === 'on'
+    };
+
+    try {
+      const response = await fetch('/api/vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Tạo voucher thành công!');
+        window.location.reload();
+      } else {
+        alert(result.message || 'Có lỗi xảy ra');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+    }
+  }
+
+  async function editVoucher(id) {
+    try {
+      const response = await fetch(`/api/vouchers/${id}`);
+      const result = await response.json();
+
+      if (result.success) {
+        alert('Tính năng chỉnh sửa đang được phát triển!');
+        // TODO: Implement edit modal
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Không thể tải thông tin voucher');
+    }
+  }
+
+  async function deleteVoucher(id, code) {
+    if (!confirm(`Bạn có chắc chắn muốn xóa voucher "${code}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/vouchers/${id}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Xóa voucher thành công!');
+        window.location.reload();
+      } else {
+        alert(result.message || 'Có lỗi xảy ra');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+    }
+  }
+
+  // Auto uppercase code input
+  document.querySelector('input[name="code"]')?.addEventListener('input', function(e) {
+    e.target.value = e.target.value.toUpperCase();
+  });
+
+  // Fix voucher codes
+  async function fixVoucherCodes() {
+    if (!confirm('Bạn có chắc chắn muốn sửa format tất cả các mã voucher? (Chuyển thành UPPERCASE và loại bỏ spaces)')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/vouchers/fix-codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(`✅ ${result.message}`);
+        window.location.reload();
+      } else {
+        alert(result.message || 'Có lỗi xảy ra');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+    }
+  }
+</script>
+
+<%- include('../partials/footer.ejs') %>
+

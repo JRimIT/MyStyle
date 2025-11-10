@@ -1,6 +1,7 @@
 <%- include('../partials/header.ejs') %>
 
 <div class="bodyAdmin">
+
   <%- include('../partials/navbar.ejs', { user: { role: 'admin', name: 'Admin' } }) %>
 
   <% // ===== SAFE DEFAULTS ===== %>
@@ -114,6 +115,7 @@
   <%- include('../partials/footer.ejs') %>
 </div>
 
+
 <!-- Delete Confirm Modal -->
 <div class="modal fade" id="delModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
@@ -172,3 +174,4 @@
     }
   });
 </script>
+

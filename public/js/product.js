@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function addToLocalCart(productId, size, qty=1) {
     try {
+
       const cart = JSON.parse(localStorage.getItem('localCart')||'[]');
       const entry = { id: productId, size, qty };
       cart.push(entry);
@@ -34,16 +35,19 @@ document.addEventListener('DOMContentLoaded', () => {
       // show notice near cart (simple)
       const toast = document.createElement('div');
       toast.className = 'cart-notification show';
+
       toast.style.position = 'fixed';
       toast.style.top = '80px';
       toast.style.right = '20px';
       toast.style.zIndex = 2000;
+
       toast.innerHTML = `<div class="p-3 bg-white shadow rounded">Đã thêm vào giỏ hàng<br>${size} × ${qty}</div>`;
       document.body.appendChild(toast);
       setTimeout(()=>{ toast.remove(); }, 2500);
     } catch (e) {
       console.error('Cart error', e);
     }
+
   }
 
   // attach add to cart
@@ -54,8 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // fallback: parse from URL
     let id = null;
     if (!id) {
+
       const m = window.location.pathname.match(/\/product\/(.+)$/);
       if (m) id = m[1];
+
     }
 
     if (!selectedSize) {
@@ -69,8 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   buyNowBtn.addEventListener('click', () => {
     // minimal behaviour: add to cart then go to cart page
+
     const m = window.location.pathname.match(/\/product\/(.+)$/);
     const id = m ? m[1] : null;
+
     if (!selectedSize) {
       stockNotice.textContent = 'Vui lòng chọn kích thước';
       stockNotice.style.color = '#d63333';

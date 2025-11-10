@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Product from "../models/product.model.js";
 
+
 // ---- Helpers ----
 function toArray(val) {
   if (Array.isArray(val)) {
@@ -118,4 +119,5 @@ export async function deleteProduct(productId) {
   const deleted = await Product.findByIdAndDelete(productId).lean();
   if (!deleted) throw new Error("Product not found");
   return deleted;
+
 }

@@ -1,8 +1,12 @@
+
 /* Modern Profile & Order History */
+
 .profile-container,
 .settings-container {
   max-width: 600px;
   margin: auto;
+
+
 }
 
 .card {

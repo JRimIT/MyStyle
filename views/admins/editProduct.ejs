@@ -1,6 +1,8 @@
 <%- include('../partials/header.ejs') %>
 
 <div class="bodyAdmin">
+
+
   <%- include('../partials/navbar.ejs', { user: { role: 'admin', name: 'Admin' } }) %>
 
   <div class="container mt-5 pt-5">
@@ -10,17 +12,21 @@
     </div>
 
     <%
+
       const p = (typeof product !== 'undefined' && product) ? product : {};
       const sizesCsv  = Array.isArray(p.sizes)  ? p.sizes.join(', ')  : '';
       const badgesCsv = Array.isArray(p.badges) ? p.badges.join(', ') : '';
       const imagesCsv = Array.isArray(p.images) ? p.images.join(', ') : '';
+
     %>
 
     <div class="row">
       <div class="col-md-8">
         <div class="card">
           <div class="card-body">
+
             <form action="/productCrud/<%= p._id %>?_method=PUT&redirect=/admin/products" method="POST">
+\
               <div class="mb-3">
                 <label class="form-label">Name</label>
                 <input name="name" value="<%= p.name || '' %>" class="form-control" required />
@@ -37,6 +43,7 @@
               </div>
 
               <div class="mb-3">
+
                 <label class="form-label">Image URL</label>
                 <input name="imageUrl" value="<%= p.imageUrl || '' %>" class="form-control" placeholder="/uploads/... or http(s)://..." />
               </div>
@@ -54,6 +61,7 @@
               <div class="mb-3">
                 <label class="form-label">Badges (CSV)</label>
                 <input name="badgesCsv" value="<%= badgesCsv %>" class="form-control" placeholder="new, hot, sale" />
+
               </div>
 
               <div class="mb-3">
@@ -76,10 +84,12 @@
             <% } else { %>
               <p class="text-muted">No image</p>
             <% } %>
+
             <div class="mt-2 text-muted small">
               Created: <%= p.createdAt ? new Date(p.createdAt).toLocaleString('vi-VN') : '-' %><br>
               Reviews: <%= Array.isArray(p.reviews) ? p.reviews.length : 0 %>
             </div>
+
           </div>
         </div>
       </div>
@@ -88,4 +98,6 @@
   </div>
 
   <%- include('../partials/footer.ejs') %>
+
 </div>
+

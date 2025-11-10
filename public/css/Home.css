@@ -5,6 +5,7 @@
         no-repeat center center fixed;
     background-size: cover;
     min-height: 100vh;
+    padding-top: 100px;
 }
 
 .navbar-custom {
@@ -109,6 +110,80 @@
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
 }
 
+/* Sale Banner */
+.sale-banner {
+    background: linear-gradient(135deg, #ff6347 0%, #ff8c42 50%, #ff6347 100%);
+    background-size: 200% 200%;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 30px rgba(255, 99, 71, 0.3);
+    animation: gradient-shift 3s ease infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes gradient-shift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.sale-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: shimmer 4s infinite;
+}
+
+.sale-banner-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.sale-icon {
+    font-size: 3rem;
+    color: white;
+    animation: bounce-fire 2s infinite;
+}
+
+@keyframes bounce-fire {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-10px) scale(1.1);
+    }
+}
+
+.sale-text {
+    color: white;
+    text-align: center;
+}
+
+.sale-text h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.sale-text p {
+    font-size: 1.1rem;
+    margin: 5px 0 0 0;
+    opacity: 0.95;
+}
+
 .products-section {
     padding: 48px 18px 36px 18px;
     background: rgba(255, 255, 255, 0.85);
@@ -182,11 +257,52 @@
     box-shadow: 0 8px 32px rgba(255, 99, 71, 0.15);
     z-index: 2;
 }
-.card img {
-    height: 180px;
-    object-fit: cover;
+.product-image-wrapper {
+    position: relative;
+    overflow: hidden;
     border-radius: 18px 18px 0 0;
-    transition: filter 0.2s;
+}
+
+.card img {
+    height: 280px;
+    width: 100%;
+    object-fit: cover;
+    transition: filter 0.2s, transform 0.3s;
+}
+
+.card:hover img {
+    transform: scale(1.05);
+}
+
+/* Sale Badge */
+.sale-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #ff6347 0%, #ff8c42 100%);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 15px rgba(255, 99, 71, 0.4);
+    z-index: 10;
+    animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(255, 99, 71, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(255, 99, 71, 0.6);
+    }
+}
+
+.sale-badge i {
+    margin-right: 4px;
 }
 .card-title {
     color: #ff6347;
@@ -194,10 +310,14 @@
     font-size: 1.25rem;
     margin-bottom: 0.5rem;
 }
+.price-section {
+    margin-bottom: 0.7rem;
+}
+
 .card-text {
     font-size: 1.1rem;
     color: #444;
-    margin-bottom: 0.7rem;
+    margin-bottom: 0;
     font-weight: 500;
     background: linear-gradient(90deg, #ff6347 60%, #fbc02d 100%);
     color: #fff;
@@ -205,6 +325,26 @@
     padding: 4px 14px;
     display: inline-block;
     box-shadow: 0 2px 8px rgba(255, 99, 71, 0.08);
+}
+
+.original-price {
+    font-size: 0.9rem;
+    color: #999;
+    text-decoration: line-through;
+    margin-bottom: 5px;
+    font-weight: 400;
+}
+
+.sale-price {
+    font-size: 1.2rem;
+    color: #ff6347;
+    font-weight: 700;
+    background: linear-gradient(90deg, #ff6347 60%, #fbc02d 100%);
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 16px;
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(255, 99, 71, 0.2);
 }
 .btn-order {
     background: linear-gradient(90deg, #ff6347 60%, #fbc02d 100%);
@@ -258,7 +398,7 @@
         max-width: 98vw;
     }
     .card img {
-        height: 140px;
+        height: 220px;
     }
 }
 @media (max-width: 576px) {
@@ -274,11 +414,219 @@
     }
     .card img {
         border-radius: 10px 10px 0 0;
-        height: 100px;
+        height: 180px;
+    }
+}
+
+/* Product Header Styles */
+.product-header {
+    padding: 30px 0;
+    border-bottom: 3px solid rgba(255, 99, 71, 0.1);
+    margin-bottom: 30px;
+    animation: fadeInDown 0.6s ease-out;
+}
+
+.product-main-title {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ff6347 0%, #fbc02d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+.product-main-title i {
+    -webkit-text-fill-color: #ff6347;
+    margin-right: 15px;
+    animation: pulse 2s infinite;
+}
+
+.product-subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    font-weight: 500;
+    margin: 0;
+}
+
+.product-stats {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 25px;
+    background: linear-gradient(135deg, rgba(255, 99, 71, 0.1) 0%, rgba(251, 192, 45, 0.1) 100%);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 99, 71, 0.1);
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(255, 99, 71, 0.2);
+}
+
+.stat-item i {
+    font-size: 2rem;
+    color: #ff6347;
+    margin-bottom: 8px;
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ff6347;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+/* Filter and Sort Bar Styles */
+.filter-sort-bar {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 250, 240, 0.95) 100%);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(255, 99, 71, 0.1);
+    animation: fadeInUp 0.7s ease-out;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-label i {
+    color: #ff6347;
+    font-size: 1rem;
+}
+
+.filter-select {
+    border: 2px solid #eee;
+    border-radius: 12px;
+    padding: 12px 15px;
+    font-weight: 500;
+    color: #333;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+.filter-select:focus {
+    border-color: #ff6347;
+    box-shadow: 0 0 0 0.25rem rgba(255, 99, 71, 0.15);
+    outline: none;
+}
+
+.filter-select:hover {
+    border-color: #ff6347;
+}
+
+.btn-clear-filter {
+    background: linear-gradient(135deg, #ff6347 0%, #e5533d 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 99, 71, 0.3);
+}
+
+.btn-clear-filter:hover {
+    background: linear-gradient(135deg, #e5533d 0%, #ff6347 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 99, 71, 0.4);
+    color: white;
+}
+
+.btn-clear-filter i {
+    margin-right: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .product-main-title {
+        font-size: 2.2rem;
+    }
+    
+    .product-stats {
+        justify-content: center;
+    }
+    
+    .stat-item {
+        padding: 12px 20px;
+    }
+    
+    .stat-item i {
+        font-size: 1.5rem;
+    }
+    
+    .stat-number {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .product-main-title {
+        font-size: 1.8rem;
+    }
+    
+    .product-subtitle {
+        font-size: 1rem;
+    }
+    
+    .filter-sort-bar {
+        padding: 15px;
+    }
+    
+    .stat-item {
+        padding: 10px 15px;
+    }
+    
+    .stat-item i {
+        font-size: 1.2rem;
+    }
+    
+    .stat-number {
+        font-size: 1.2rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
     }
 }
 
 /* Animations */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
 @keyframes fadeInUp {
     0% {
         opacity: 0;

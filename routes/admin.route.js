@@ -206,26 +206,79 @@ router.get("/admin/products/edit/:productId", async (req, res) => {
 });
 
 // Admin: Handle product update
-router.post(
-  "/admin/products/edit/:productId",
-  upload.single("image"),
-  async (req, res) => {
-    try {
-      const { name, description, price, category } = req.body;
-      let updateData = { name, description, price, category };
-      if (req.file) {
-        updateData.imageUrl = "/uploads/" + req.file.filename;
-      } else if (req.body.imageUrl) {
-        updateData.imageUrl = req.body.imageUrl;
-      }
-      await Product.findByIdAndUpdate(req.params.productId, updateData);
-      res.redirect("/admin/products");
-    } catch (error) {
-      console.error("Error updating product:", error);
-      res.status(500).json({ message: "Internal server error" });
+router.post("/admin/products/edit/:productId", async (req, res) => {
+  try {
+    // debug body
+    console.log('POST /admin/products/edit - raw body:', req.body);
+
+    const { name, description, price, imageUrl, category } = req.body;
+    const rawSizes  = req.body.sizes  ?? req.body.sizesCSV  ?? req.body.sizesCsv;
+    const rawBadges = req.body.badges ?? req.body.badgesCSV ?? req.body.badgesCsv;
+
+    // helper CSV -> array
+    const toArray = (v) => {
+      if (Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
+      if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
+      return [];
+    };
+
+    // dò schema để lưu đúng kiểu
+    const sizesPath  = Product.schema.path('sizes');
+    const badgesPath = Product.schema.path('badges');
+
+    let sizesToSave;
+    if (sizesPath && sizesPath.instance === 'Array') {
+      sizesToSave = toArray(rawSizes);
+    } else if (rawSizes !== undefined) {
+      sizesToSave = Array.isArray(rawSizes)
+        ? rawSizes.map(x => String(x).trim()).filter(Boolean).join(',')
+        : String(rawSizes).trim();
     }
+
+    let badgesToSave;
+    if (badgesPath && badgesPath.instance === 'Array') {
+      badgesToSave = toArray(rawBadges);
+    } else if (rawBadges !== undefined) {
+      badgesToSave = Array.isArray(rawBadges)
+        ? rawBadges.map(x => String(x).trim()).filter(Boolean).join(',')
+        : String(rawBadges).trim();
+    }
+
+    // build update doc
+    const updateData = {
+      name: (name ?? '').trim(),
+      description: (description ?? '').trim(),
+      category: (category ?? '').trim()
+    };
+
+    // ép số price nếu hợp lệ
+    if (price !== undefined && price !== '') {
+      const n = Number(price);
+      if (!Number.isNaN(n)) updateData.price = n;
+    }
+
+    // imageUrl nếu có
+    if (imageUrl) updateData.imageUrl = imageUrl.trim();
+
+    // gán sizes/badges nếu có trong body
+    if (typeof sizesToSave  !== 'undefined') updateData.sizes  = sizesToSave;
+    if (typeof badgesToSave !== 'undefined') updateData.badges = badgesToSave;
+
+    console.log('POST /admin/products/edit - normalized update:', updateData);
+
+    await Product.findByIdAndUpdate(
+      req.params.productId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    const redirectTo = req.query.redirect || "/admin/products";
+    res.redirect(redirectTo);
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
-);
+});
 
 // Admin: Delete product
 router.post("/admin/products/delete/:productId", async (req, res) => {

@@ -5,13 +5,13 @@ import Product from "../models/product.model.js";
 import Order from "../models/order.model.js";
 
 // Các trạng thái được coi là đã mua/thành công (điều chỉnh cho khớp hệ thống của bạn)
-const PURCHASED_STATUSES = ["Paid", "Completed", "Delivered", "Success"];
+const PURCHASED_STATUSES = ["paid", "unpaid"];
 
 async function userHasPurchasedProduct(userId, productId) {
   // Dựa đúng schema Order bạn gửi: userId, items[].productId, status
   const exist = await Order.exists({
     userId: new mongoose.Types.ObjectId(userId),
-    "items.productId": new mongoose.Types.ObjectId(productId),
+    "items.productId": String(productId),
     status: { $in: PURCHASED_STATUSES },
   });
   return !!exist;

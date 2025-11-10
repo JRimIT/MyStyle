@@ -1,5 +1,5 @@
 import express from "express";
-import { verifyUser } from "../config/jwtConfig.js";
+import { verifyUserOrRedirect as verifyUser } from "../config/jwtConfig.js";
 import {
   viewCheckoutPage,
   createOrderWeb,

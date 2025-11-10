@@ -1,5 +1,4 @@
 import passport from "passport";
-// import { Strategy as FacebookStrategy } from "passport-facebook";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
@@ -12,59 +11,13 @@ const opts = {
   secretOrKey: process.env.JWT_SECRET,
 };
 
-// Passport setup
-// passport.serializeUser((user, done) => {
-//   done(null, user);
-// });
-// passport.deserializeUser((obj, done) => {
-//   done(null, obj);
-// });
-
-// // Facebook Strategy
-// passport.use(
-//   new FacebookStrategy(
-//     {
-//       clientID: process.env.FACEBOOK_APP_ID,
-//       clientSecret: process.env.FACEBOOK_APP_SECRET,
-//       callbackURL: "https://localhost:4000/auth/facebook/callback",
-//       profileFields: ["id", "displayName", "emails"],
-//     },
-//     async (accessToken, refreshToken, profile, done) => {
-//       console.log("Profile: ", profile);
-
-//       try {
-//         let user = await User.findOne({ facebookId: profile.id });
-//         if (!user) {
-//           user = await User.create({
-//             facebookId: profile.id,
-//             username: profile.displayName,
-//           });
-//         }
-//         console.log("User facebook: ", user);
-
-//         return done(null, user);
-//       } catch (err) {
-//         return done(err, null);
-//       }
-//     }
-//   )
-// );
-
-// JWT Strategy
-const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.JWT_SECRET,
-};
-
 // Passport JWT strategy
 passport.use(
   new JwtStrategy(opts, async (jwt_payload, done) => {
     try {
-      console.log("JWT Payload:", jwt_payload);
-
       const user = await User.findById(jwt_payload.userId);
-      if (user) return done(null, user); // gán user vào req.user
-      else return done(null, false);
+      if (user) return done(null, user);
+      return done(null, false);
     } catch (err) {
       return done(err, false);
     }
@@ -84,65 +37,72 @@ export const generateJWT = (user) => {
   );
 };
 
-// Middleware để dùng trực tiếp thay vì passport.authenticate('jwt')
+// Middleware: verify token for API/AJAX; returns JSON on failure
 export const verifyUser = (req, res, next) => {
-  // Check if user is already set from session middleware
-  if (req.user && req.user.userId) {
-    return next();
-  }
+  if (req.user && req.user.userId) return next();
 
-  const authHeader =
-    req.headers["authorization"] || (req.session?.token ? `Bearer ${req.session.token}` : null);
-
-  if (!authHeader) {
-    return res.status(403).json({ 
-      success: false,
-      message: "Vui lòng đăng nhập để sử dụng tính năng này!" 
-    });
-  }
-
-  const token = authHeader.split(" ")[1]; // 'Bearer <token>'
+  const authHeader = req.headers["authorization"] || (req.session?.token ? `Bearer ${req.session.token}` : null);
+  const token = authHeader ? authHeader.split(" ")[1] : null;
 
   if (!token) {
-    return res.status(403).json({ 
-      success: false,
-      message: "Vui lòng đăng nhập để sử dụng tính năng này!" 
-    });
+    return res.status(401).json({ success: false, message: "Token required. Please login." });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ 
-        success: false,
-        message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!" 
-      });
-    }
+    if (err) return res.status(401).json({ success: false, message: "Token expired or invalid." });
     req.user = decoded;
     next();
   });
 };
 
 export const verifyAdmin = (req, res, next) => {
-  const authHeader =
-    req.headers["authorization"] || `Bearer ${req.session.token}`;
-  const token = authHeader && authHeader.split(" ")[1]; // 'Bearer <token>'
-
-  if (!token) {
-    return res.status(403).json({ message: "No token provided!" });
-  }
-  console.log("token verify: ", token);
+  const authHeader = req.headers["authorization"] || (req.session?.token ? `Bearer ${req.session.token}` : null);
+  const token = authHeader ? authHeader.split(" ")[1] : null;
+  if (!token) return res.status(403).json({ message: "No token provided!" });
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ message: "Invalid token!" });
-    }
-
-    if (decoded.role !== "admin") {
-      return res.status(403).json({ message: "Admin access required." });
-    }
-
+    if (err) return res.status(401).json({ message: "Invalid token!" });
+    if (decoded.role !== "admin") return res.status(403).json({ message: "Admin access required." });
     req.user = decoded;
     next();
   });
 };
 
 export const jwtPassport = passport;
+
+// Middleware: for web page requests, redirect to /login if unauthenticated
+export const verifyUserOrRedirect = (req, res, next) => {
+  const isApi = (req.path || "").startsWith("/api/");
+  const isAjax = !!(req.xhr || req.headers["x-requested-with"] === "XMLHttpRequest");
+  const accept = (req.headers?.accept || "").toString().toLowerCase();
+  const wantsHtmlStrict = /text\/html/.test(accept);
+  const isGet = (req.method || "GET").toUpperCase() === "GET";
+  const isWebPage = !isApi && !isAjax && isGet && wantsHtmlStrict;
+
+  if (req.user && req.user.userId) return next();
+
+  const authHeader = req.headers["authorization"] || (req.session?.token ? `Bearer ${req.session.token}` : null);
+  const token = authHeader ? authHeader.split(" ")[1] : null;
+
+  if (!token) {
+    if (isWebPage) {
+      if (req.session) req.session.flash = { type: "error", message: "Vui lòng đăng nhập để sử dụng tính năng này!" };
+      const nextUrl = encodeURIComponent(req.originalUrl || "/");
+      return res.redirect(`/login?next=${nextUrl}`);
+    }
+    return res.status(401).json({ success: false, loginRequired: true, message: "Token required. Please login." });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      if (isWebPage) {
+        if (req.session) req.session.flash = { type: "error", message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!" };
+        const nextUrl = encodeURIComponent(req.originalUrl || "/");
+        return res.redirect(`/login?next=${nextUrl}`);
+      }
+      return res.status(401).json({ success: false, loginRequired: true, message: "Token expired. Please login." });
+    }
+    req.user = decoded;
+    next();
+  });
+};
+

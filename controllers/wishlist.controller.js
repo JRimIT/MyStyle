@@ -26,7 +26,7 @@ export async function viewWishlist(req, res) {
 export async function addToWishlist(req, res) {
   try {
     const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!userId) return res.status(401).json({ success:false, loginRequired:true, message: "Token required. Please login." });
 
     const { productId } = req.body;
     if (!mongoose.isValidObjectId(productId))
@@ -55,7 +55,7 @@ export async function addToWishlist(req, res) {
 export async function removeFromWishlist(req, res) {
   try {
     const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!userId) return res.status(401).json({ success:false, loginRequired:true, message: "Token required. Please login." });
 
     const { productId } = req.params;
     if (!mongoose.isValidObjectId(productId))

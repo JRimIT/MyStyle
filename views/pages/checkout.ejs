@@ -47,22 +47,18 @@
         <div class="col-12 mt-2">
           <h5 class="mb-2">Phương thức thanh toán</h5>
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="paymentMethod" id="pmDirect" value="direct" checked>
+            <input class="form-check-input" type="radio" name="paymentMethod" id=\"pmDirect\" value=\"direct\">
             <label class="form-check-label" for="pmDirect">VNPay <span class="badge badge-vnp">Thanh toán ngay</span></label>
           </div>
           <div class="form-check mt-2">
-            <input class="form-check-input" type="radio" name="paymentMethod" id="pmCard" value="cardbank">
+            <input class="form-check-input" type="radio" name="paymentMethod" id=\"pmCard\" value=\"cardbank\" checked>
             <label class="form-check-label" for="pmCard">Thẻ/Ngân hàng (Card/Bank)</label>
           </div>
 
           <div id="bankWrap" class="mt-2" style="display:none;">
             <label class="form-label">Chọn phương thức/ngân hàng (tùy chọn):</label>
             <select name="bankCode" class="form-select">
-              <option value="">-- Theo màn hình VNPay --</option>
-              <option value="VNPAYQR">VNPAYQR (QR Pay)</option>
-              <option value="VNBANK">VNBANK (ATM/IB)</option>
-              <option value="INTCARD">INTCARD (VISA/Master/JCB)</option>
-              <option value="NCB">NCB</option>
+              <option value="INTCARD" selected>INTCARD (VISA/Master/JCB)</option><option value="VNBANK">VNBANK (ATM/IB)</option><option value="VNPAYQR">VNPAYQR (QR Pay)</option><option value="NCB">NCB</option>
             </select>
           </div>
         </div>
@@ -90,4 +86,5 @@
 </div>
 
 <%- include('../partials/footer') %>
+
 

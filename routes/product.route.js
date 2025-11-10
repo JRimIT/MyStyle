@@ -145,3 +145,35 @@ export default router;
 
 
 
+// Product detail page
+router.get("/product/:id", async (req, res) => {
+  try {
+    const p = await Product.findById(req.params.id);
+    if (!p) return res.status(404).render("errors/404");
+    let displayPrice = p.price;
+    let originalDisplayPrice = null;
+    let isCurrentlyOnSale = false;
+    if (p.isOnSale) {
+      const now = new Date();
+      const startValid = !p.saleStartDate || now >= p.saleStartDate;
+      const endValid = !p.saleEndDate || now <= p.saleEndDate;
+      isCurrentlyOnSale = startValid && endValid;
+      if (isCurrentlyOnSale) {
+        const base = p.originalPrice || p.price;
+        if (p.discount > 0) displayPrice = base * (1 - p.discount / 100);
+        else if (p.discountAmount > 0) displayPrice = Math.max(0, base - p.discountAmount);
+        originalDisplayPrice = base;
+      }
+    }
+    const cartCount = req.user ? await countProduct(req.user.userId) : 0;
+    let user = req.user;
+    if (req.user && req.user.userId) {
+      const User = (await import("../models/user.model.js")).default;
+      user = await User.findById(req.user.userId);
+    }
+    res.render("pages/ProductDetail", { product: p, displayPrice, originalDisplayPrice, isCurrentlyOnSale, cartCount, user });
+  } catch (e) {
+    console.error("product detail error:", e);
+    res.status(500).render("errors/500");
+  }
+});

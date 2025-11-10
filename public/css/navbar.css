@@ -231,6 +231,12 @@
   border-color: #e5533d;
 }
 
+/* Ensure dropdown overlays any other panels and is clickable */
+.navbar-custom .dropdown-menu {
+  z-index: 11000;
+  pointer-events: auto;
+}
+
 .cart-icon {
   position: relative;
   margin-top: 10px;

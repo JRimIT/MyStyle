@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+<div class="container my-4">
+  <h3>Thống kê</h3>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card p-3 shadow-sm"><div>Tổng doanh thu</div><div class="fs-4 fw-bold"><%= Number(revenue||0).toLocaleString('vi-VN') %> VND</div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 shadow-sm"><div>Đơn đã thanh toán</div><div class="fs-4 fw-bold"><%= paidCount %></div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 shadow-sm"><div>Theo trạng thái</div>
+        <ul class="mb-0">
+          <% (byStatus||[]).forEach(s=>{ %>
+            <li><%= s._id %>: <%= s.count %></li>
+          <% }) %>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card p-3 mt-3 shadow-sm">
+    <h5>Top sản phẩm (theo số lượng)</h5>
+    <ol>
+      <% (topProducts||[]).forEach(p=>{ %>
+        <li><%= p._id %> — <%= p.qty %></li>
+      <% }) %>
+    </ol>
+  </div>
+</div>
+<%- include('../partials/footer') %>
+

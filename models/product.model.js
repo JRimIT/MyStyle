@@ -15,6 +15,7 @@ const productSchema = new mongoose.Schema({
   saleEndDate: { type: Date, default: null }, // Ngày kết thúc khuyến mãi
   promotionLabel: { type: String, default: "" }, // Nhãn khuyến mãi (VD: "Giảm 50%", "Flash Sale")
   imageUrl: String,
+  isFeatured: { type: Boolean, default: false },
   category: String,
   sizes: [String],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
@@ -55,6 +56,7 @@ const Product =
   mongoose.models.product || mongoose.model("Product", productSchema);
 
 export default Product;
+
 
 
 

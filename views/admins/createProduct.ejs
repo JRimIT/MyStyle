@@ -1,0 +1,14 @@
+<%- include('../partials/header') %>
+<div class="container my-4">
+  <h3>Thêm sản phẩm</h3>
+  <form method="POST" action="/admin/products/create" class="card p-3 shadow-sm">
+    <div class="mb-2"><label class="form-label">Tên</label><input class="form-control" name="name"/></div>
+    <div class="mb-2"><label class="form-label">Mô tả</label><textarea class="form-control" name="description"></textarea></div>
+    <div class="mb-2"><label class="form-label">Giá</label><input class="form-control" type="number" name="price"/></div>
+    <div class="mb-2"><label class="form-label">Danh mục</label><input class="form-control" name="category"/></div>
+    <div class="mb-2"><label class="form-label">Ảnh (URL)</label><input class="form-control" name="imageUrl"/></div>
+    <button class="btn btn-primary">Tạo</button>
+  </form>
+</div>
+<%- include('../partials/footer') %>
+

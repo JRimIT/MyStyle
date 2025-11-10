@@ -5,16 +5,23 @@ import axios from "axios";
 import https from "https";
 import User from "../models/user.model.js";
 import Product from "../models/product.model.js";
-import { verifyUser } from "../config/jwtConfig.js";
+import { verifyAdmin } from "../config/jwtConfig.js";
 import Cart from "../models/cart.model.js";
 import { countProduct } from "../controllers/countCart.js";
 import Order from "../models/order.model.js";
+import Review from "../models/review.model.js";
 import multer from "multer";
 import path from "path";
 
 const router = express.Router();
 const axiosInstance = axios.create({
   httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+});
+
+// Protect all /admin routes with verifyAdmin
+router.use((req, res, next) => {
+  if (req.path && req.path.startsWith("/admin")) return verifyAdmin(req, res, next);
+  next();
 });
 
 // Multer config for image upload
@@ -117,6 +124,20 @@ router.get("/admin/products", async (req, res) => {
   }
 });
 
+// Admin: Toggle user active
+router.post("/admin/users/toggle/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: "Not found" });
+    user.isActive = user.isActive === false ? true : false;
+    await user.save();
+    res.redirect("/admin/manageUser");
+  } catch (error) {
+    console.error("Error /admin/users/toggle:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // Admin: Show create product form
 router.get("/admin/products/create", (req, res) => {
   res.render("admins/createProduct");
@@ -151,8 +172,8 @@ router.post(
   upload.single("image"),
   async (req, res) => {
     try {
-      const { name, description, price, category } = req.body;
-      let updateData = { name, description, price, category };
+      const { name, description, price, category, isFeatured } = req.body;
+      let updateData = { name, description, price, category, isFeatured: !!isFeatured };
       if (req.file) {
         updateData.imageUrl = "/uploads/" + req.file.filename;
       } else if (req.body.imageUrl) {
@@ -234,3 +255,26 @@ router.get("/admin/vouchers", async (req, res) => {
 });
 
 export default router;
+// Admin: Reviews management
+router.get("/admin/reviews", async (req, res) => {
+  try {
+    const reviews = await Review.find({})
+      .populate("userId", "username")
+      .populate("productId", "name")
+      .sort({ createdAt: -1 });
+    res.render("admins/manageReviews", { reviews });
+  } catch (e) {
+    console.error("Error /admin/reviews:", e);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.post("/admin/reviews/delete/:reviewId", async (req, res) => {
+  try {
+    await Review.findByIdAndDelete(req.params.reviewId);
+    res.redirect("/admin/reviews");
+  } catch (e) {
+    console.error("Error delete review:", e);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});

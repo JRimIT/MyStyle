@@ -1,0 +1,66 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<div style="height:80px"></div>
+
+<div class="container my-3">
+  <h3>Shipper Dashboard</h3>
+  <div class="row">
+    <div class="col-lg-6">
+      <h5>Đơn có thể nhận</h5>
+      <div class="list-group">
+        <% (available||[]).forEach(o => { %>
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <div><strong><%= o._id %></strong> — <%= o.status %></div>
+              <div><%= Number(o.total||0).toLocaleString('vi-VN') %> VND</div>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="accept('<%= o._id %>')">Nhận</button>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <h5>Đơn của bạn</h5>
+      <div class="list-group">
+        <% (assigned||[]).forEach(o => { %>
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between">
+              <div>
+                <div><strong><%= o._id %></strong></div>
+                <div>Trạng thái giao: <%= o.shippingStatus %></div>
+              </div>
+              <div>
+                <select id="st-<%= o._id %>" class="form-select form-select-sm">
+                  <option value="picked_up">Đã lấy</option>
+                  <option value="in_transit">Đang giao</option>
+                  <option value="delivered">Đã giao</option>
+                  <option value="problem">Sự cố</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-2">
+              <button class="btn btn-sm btn-outline-secondary" onclick="updateSt('<%= o._id %>')">Cập nhật</button>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function accept(id){
+    const r = await fetch(`/shipper/accept/${id}`, { method:'POST', headers:{'Accept':'application/json'} });
+    const d = await r.json().catch(()=>({}));
+    if(r.ok&&d.ok) location.reload(); else alert(d.message||'Không thể nhận đơn');
+  }
+  async function updateSt(id){
+    const st = document.getElementById('st-'+id).value;
+    const r = await fetch(`/shipper/update/${id}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status: st }) });
+    const d = await r.json().catch(()=>({}));
+    if(r.ok&&d.ok) location.reload(); else alert(d.message||'Không thể cập nhật');
+  }
+</script>
+
+<%- include('../partials/footer') %>
+

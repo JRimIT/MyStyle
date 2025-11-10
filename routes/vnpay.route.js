@@ -1,22 +1,52 @@
 // routes/vnpay.route.js
 import express from "express";
 import moment from "moment";
-import qs from "qs";
 import crypto from "crypto";
-import { vnpayIpn } from "../controllers/order.web.controller.js";
+import Order from "../models/order.model.js";
 
 const router = express.Router();
 
+// sort object theo key
 function sortObject(obj) {
   const sorted = {};
-  Object.keys(obj).sort().forEach(k => (sorted[k] = obj[k]));
+  Object.keys(obj)
+    .sort()
+    .forEach((key) => {
+      sorted[key] = obj[key];
+    });
   return sorted;
+}
+
+// build hash data đúng chuẩn VNPay
+function buildVnpHashData(params) {
+  const sorted = sortObject(params);
+  return Object.keys(sorted)
+    .map((key) => {
+      const value = sorted[key];
+      const encKey = encodeURIComponent(key);
+      const encVal = encodeURIComponent(value).replace(/%20/g, "+");
+      return `${encKey}=${encVal}`;
+    })
+    .join("&");
+}
+
+// build query cho URL redirect (encode full)
+function buildQuery(params) {
+  const sorted = sortObject(params);
+  return Object.keys(sorted)
+    .map(
+      (key) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(sorted[key])}`
+    )
+    .join("&");
 }
 
 router.post("/create", async (req, res) => {
   try {
-    const { orderId, amount, orderInfo, bankCode } = req.body;
-    if (!amount) return res.status(400).json({ message: "Missing amount" });
+    const { orderId, amount } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: "Order not found" });
 
     const ipAddr =
       req.headers["x-forwarded-for"] ||
@@ -24,46 +54,52 @@ router.post("/create", async (req, res) => {
       req.socket?.remoteAddress ||
       req.ip;
 
-    const tmnCode   = process.env.VNP_TMNCODE;
+    const tmnCode = process.env.VNP_TMNCODE;
     const secretKey = process.env.VNP_HASHSECRET;
-    const vnpUrl    = process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    const returnUrl = process.env.VNP_RETURNURL || "https://localhost:4000/vnpay/return";
+    const vnpUrl = process.env.VNP_URL;
+    const returnUrl = process.env.VNP_RETURNURL;
 
-    const txnRef    = `${orderId || "ORD"}_${Date.now()}`;
     const createDate = moment().format("YYYYMMDDHHmmss");
     const expireDate = moment().add(15, "minutes").format("YYYYMMDDHHmmss");
+    const txnRef = moment().format("HHmmss");
 
     const vnpParams = {
       vnp_Version: "2.1.0",
       vnp_Command: "pay",
       vnp_TmnCode: tmnCode,
-      vnp_Amount: Number(amount) * 100,        // VND x 100
+      vnp_Locale: "vn",
       vnp_CurrCode: "VND",
       vnp_TxnRef: txnRef,
-      vnp_OrderInfo: orderInfo || `Thanh toan don hang ${txnRef}`,
+      vnp_OrderInfo: `Thanh toan don hang ${order._id}`,
       vnp_OrderType: "other",
-      vnp_Locale: "vn",
+      vnp_Amount: Number(amount) * 100,
       vnp_ReturnUrl: returnUrl,
       vnp_IpAddr: ipAddr,
       vnp_CreateDate: createDate,
       vnp_ExpireDate: expireDate,
     };
 
-    // nếu truyền bankCode (VNPAYQR / VNBANK / VISA / ...), thêm vào để mở đúng tab
-    if (bankCode) vnpParams.vnp_BankCode = bankCode;
+    const signData = buildVnpHashData(vnpParams);
+    const hmac = crypto.createHmac("sha512", secretKey);
+    const secureHash = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
-    const sorted = sortObject(vnpParams);
-    const signData = qs.stringify(sorted, { encode: false });
-    const secureHash = crypto.createHmac("sha512", secretKey).update(signData).digest("hex");
-    const payUrl = `${vnpUrl}?${signData}&vnp_SecureHash=${secureHash}`;
+    const vnpParamsWithHash = {
+      ...vnpParams,
+      vnp_SecureHash: secureHash,
+      vnp_SecureHashType: "SHA512",
+    };
 
-    return res.json({ payUrl, txnRef });
+    const redirectUrl = `${vnpUrl}?${buildQuery(vnpParamsWithHash)}`;
+
+    console.log("[VNPay] signData:", signData);
+    console.log("[VNPay] secureHash:", secureHash);
+    console.log("[VNPay] redirect:", redirectUrl);
+
+    return res.redirect(redirectUrl);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Create VNPay URL failed" });
+    console.error("VNPay create error:", err);
+    return res.status(500).json({ message: "VNPay create error" });
   }
 });
 
 export default router;
-// IPN endpoint for VNPay server-to-server confirmation
-router.get("/ipn", vnpayIpn);

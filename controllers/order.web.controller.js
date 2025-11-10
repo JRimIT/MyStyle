@@ -1,4 +1,5 @@
-﻿// controllers/order.web.controller.js
+// controllers/order.web.controller.js
+
 import Cart from "../models/cart.model.js";
 import Order from "../models/order.model.js";
 import { countProduct } from "./countCart.js";
@@ -82,6 +83,24 @@ function sortObject(obj) {
   return out;
 }
 
+/**
+ * Build chuỗi hash theo đúng chuẩn VNPay:
+ *  - sort key
+ *  - urlencode key, value
+ *  - space -> '+'
+ */
+function buildVnpHashData(params) {
+  const sorted = sortObject(params);
+  return Object.keys(sorted)
+    .map((key) => {
+      const value = sorted[key];
+      const encKey = encodeURIComponent(key);
+      const encVal = encodeURIComponent(value).replace(/%20/g, "+");
+      return `${encKey}=${encVal}`;
+    })
+    .join("&");
+}
+
 /* ================= Web Checkout ================= */
 
 /* ====== GET /view/checkout ====== */
@@ -90,7 +109,7 @@ export async function viewCheckoutPage(req, res) {
     if (!req.user || !req.user.userId) {
       req.session.flash = {
         type: "error",
-        message: "Vui lÃ²ng Ä‘Äƒng nháº­p trÆ°á»›c khi thanh toÃ¡n.",
+        message: "Vui lòng đăng nhập trước khi thanh toán.",
       };
       return res.redirect("/login");
     }
@@ -101,7 +120,7 @@ export async function viewCheckoutPage(req, res) {
 
     const data = await loadCartAndTotals(userId);
     if (!data.cart) {
-      req.session.flash = { type: "warning", message: "Giá» hÃ ng trá»‘ng!" };
+      req.session.flash = { type: "warning", message: "Giỏ hàng trống!" };
       return res.redirect("/view/cart");
     }
 
@@ -115,38 +134,38 @@ export async function viewCheckoutPage(req, res) {
     });
   } catch (e) {
     console.error("viewCheckoutPage error:", e);
-    return res.status(500).send("Lá»—i hiá»ƒn thá»‹ trang thanh toÃ¡n.");
+    return res.status(500).send("Lỗi hiển thị trang thanh toán.");
   }
 }
 
 /* ====== POST /checkout (VNPay Direct / CardBank / COD) ====== */
 export async function createOrderWeb(req, res) {
   try {
-    // 1. Kiá»ƒm tra Ä‘Äƒng nháº­p
+    // 1. Kiểm tra đăng nhập
     if (!req.user || !req.user.userId) {
       req.session.flash = {
         type: "error",
-        message: "Vui lÃ²ng Ä‘Äƒng nháº­p trÆ°á»›c khi thanh toÃ¡n.",
+        message: "Vui lòng đăng nhập trước khi thanh toán.",
       };
       return res.redirect("/login");
     }
     const userId = req.user.userId;
 
-    // 2. Láº¥y dá»¯ liá»‡u form
+    // 2. Lấy dữ liệu form
     const { fullName, phone, address, note, paymentMethod, bankCode } = req.body;
 
     if (!fullName || !phone || !address) {
       req.session.flash = {
         type: "error",
-        message: "Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ Há» tÃªn, SÄT vÃ  Äá»‹a chá»‰.",
+        message: "Vui lòng điền đầy đủ Họ tên, SĐT và Địa chỉ.",
       };
       return res.redirect("/view/checkout");
     }
 
-    // 3. Láº¥y giá» hÃ ng
+    // 3. Lấy giỏ hàng
     const data = await loadCartAndTotals(userId);
     if (!data.cart) {
-      req.session.flash = { type: "error", message: "Giá» hÃ ng trá»‘ng!" };
+      req.session.flash = { type: "error", message: "Giỏ hàng trống!" };
       return res.redirect("/view/cart");
     }
 
@@ -160,12 +179,12 @@ export async function createOrderWeb(req, res) {
 
     const total = data.totals.total;
 
-    // 4. Chuáº©n hÃ³a kiá»ƒu thanh toÃ¡n
-    //  UI hiá»‡n táº¡i:
-    //   - "direct"   â†’ VNPay khÃ´ng chá»n sáºµn bank
-    //   - "cardbank" â†’ VNPay vá»›i bankCode
-    //   - (sau nÃ y) "cod" â†’ thanh toÃ¡n khi nháº­n
-    let method = paymentMethod || "direct"; // default: direct
+    // 4. Chuẩn hóa kiểu thanh toán
+    // UI hiện tại:
+    //   - "direct"   → VNPay không chọn sẵn bank
+    //   - "cardbank" → VNPay với bankCode
+    //   - (sau này) "cod"     → thanh toán khi nhận
+    let method = paymentMethod || "cardbank"; // default: cardbank
     let vnpSubType = null;
 
     if (method === "direct" || method === "cardbank") {
@@ -173,17 +192,25 @@ export async function createOrderWeb(req, res) {
       method = "vnpay";
     }
 
-    // 5. Táº¡o Ä‘Æ¡n hÃ ng Pending trong DB
+    // 5. Tạo đơn hàng Pending trong DB
     const order = await Order.create({
       userId,
-      items: snapshotItems.map((x) => ({ productId: x.productId, price: x.price, qty: x.quantity })),
+      items: snapshotItems.map((x) => ({
+        productId: x.productId,
+        price: x.price,
+        qty: x.quantity,
+      })),
       total,
       status: "unpaid",
       shippingAddress: { fullName, phone, address, note },
-      payment: { status: method === "vnpay" ? "pending" : "pending", amount: total, via: method },
+      payment: {
+        status: "pending",
+        amount: total,
+        via: method,
+      },
     });
 
-    /* ===== TrÆ°á»ng há»£p COD (náº¿u sau nÃ y báº¡n thÃªm radio COD) ===== */
+    /* ===== Trường hợp COD (nếu sau này bạn thêm radio COD) ===== */
     if (method === "cod") {
       data.cart.items = [];
       data.cart.appliedVoucher = {
@@ -194,43 +221,65 @@ export async function createOrderWeb(req, res) {
       };
       await data.cart.save();
 
-      req.session.flash = { type: "success", message: "Äáº·t hÃ ng thÃ nh cÃ´ng!" };
+      try {
+        const User = (await import("../models/user.model.js")).default;
+        const u = await User.findById(userId).select("email username");
+        if (u?.email) {
+          const { sendEmail } = await import("../utils/mailer.js");
+          await sendEmail(
+            u.email,
+            "Xác nhận đặt hàng",
+            `<p>Đơn hàng ${order._id} đã được ghi nhận với hình thức thanh toán khi nhận hàng (COD).</p>`
+          );
+        }
+      } catch (e) {
+        console.warn("send mail COD failed", e?.message);
+      }
+
+      req.session.flash = { type: "success", message: "Đặt hàng thành công!" };
       return res.redirect("/view/checkout-success");
     }
 
-    /* ===== TrÆ°á»ng há»£p VNPay ===== */
+    /* ===== Trường hợp VNPay ===== */
 
     // 6. Check config VNPay
     for (const key of ["VNP_TMNCODE", "VNP_HASHSECRET", "VNP_URL"]) {
       if (!process.env[key] || /YOUR_/i.test(process.env[key])) {
         const msg = `VNPay config invalid: ${key} = ${process.env[key]}`;
         console.error(msg);
-        req.session.flash = { type: "error", message: "VNPay chÆ°a cáº¥u hÃ¬nh Ä‘Ãºng." };
+        req.session.flash = { type: "error", message: "VNPay chưa cấu hình đúng." };
         return res.redirect("/view/checkout");
       }
     }
 
-    const tmnCode = process.env.VNP_TMNCODE;
-    const secretKey = process.env.VNP_HASHSECRET;
-    const vnpUrl = process.env.VNP_URL;
-    const returnUrl = (function(){
+    const tmnCode = (process.env.VNP_TMNCODE || "").trim();
+    const secretKey = (process.env.VNP_HASHSECRET || "").trim();
+    const vnpUrl =
+      (process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html").trim();
+
+    const returnUrl = (function () {
       const envUrl = (process.env.VNP_RETURNURL || "").trim();
       const isValidEnvUrl = (() => {
         try {
           const u = new URL(envUrl);
           return /^https?:$/i.test(u.protocol) && !!u.host && /\/vnpay\/return$/i.test(u.pathname);
-        } catch { return false }
+        } catch {
+          return false;
+        }
       })();
+
       if (isValidEnvUrl && !/localhost/i.test(envUrl)) return envUrl;
+
       const proto = (req.headers["x-forwarded-proto"] || req.protocol || "http").toString();
       const host = (req.headers["x-forwarded-host"] || req.headers.host || "").toString();
       if (host) return `${proto}://${host}/vnpay/return`;
+
       const fallbackPort = Number(process.env.PORT || 4000);
       return `http://localhost:${fallbackPort}/vnpay/return`;
     })();
     console.log("[VNPay] Using ReturnUrl:", returnUrl);
 
-    // 7. Chuáº©n hoÃ¡ IP thÃ nh IPv4
+    // 7. Chuẩn hoá IP thành IPv4
     const rawIp =
       req.headers["x-forwarded-for"] ||
       req.connection?.remoteAddress ||
@@ -240,19 +289,19 @@ export async function createOrderWeb(req, res) {
     const ipv4 = (rawIp.match(/\b\d{1,3}(?:\.\d{1,3}){3}\b/) || [])[0] || "127.0.0.1";
 
     const createDate = moment().format("YYYYMMDDHHmmss");
-    const vnp_TxnRef = moment().format("DDHHmmss"); // tham chiáº¿u duy nháº¥t
+    const vnp_TxnRef = moment().format("DDHHmmss"); // tham chiếu duy nhất
 
     const orderInfo = `Thanh toan don hang ${order._id}`;
 
     const amountVnd = Math.round(Number(total || 0));
     if (!Number.isFinite(amountVnd) || amountVnd <= 0) {
-      const msg = `Tá»•ng tiá»n khÃ´ng há»£p lá»‡: amountVnd = ${amountVnd}`;
+      const msg = `Tổng tiền không hợp lệ: amountVnd = ${amountVnd}`;
       console.error(msg);
-      req.session.flash = { type: "error", message: "Tá»•ng tiá»n khÃ´ng há»£p lá»‡." };
+      req.session.flash = { type: "error", message: "Tổng tiền không hợp lệ." };
       return res.redirect("/view/checkout");
     }
 
-    // 8. Build params gá»­i VNPay
+    // 8. Build params gửi VNPay
     let vnp_Params = {
       vnp_Version: "2.1.0",
       vnp_Command: "pay",
@@ -269,27 +318,23 @@ export async function createOrderWeb(req, res) {
       vnp_ExpireDate: moment().add(15, "minutes").format("YYYYMMDDHHmmss"),
     };
 
-    // ThÃªm BankCode náº¿u chá»n CardBank
-    if (vnpSubType === "cardbank" && bankCode) {
-      let bc = String(bankCode || "").toUpperCase();
+    // Thêm BankCode nếu chọn CardBank
+    if (vnpSubType === "cardbank") {
+      let bc = String(bankCode || "INTCARD").toUpperCase();
       if (["VISA", "MASTERCARD", "JCB"].includes(bc)) bc = "INTCARD";
       const allowed = new Set(["VNPAYQR", "VNBANK", "INTCARD", "NCB"]);
-      if (allowed.has(bc)) vnp_Params.vnp_BankCode = bc; else console.warn("[VNPay] Ignore unsupported bankCode:", bankCode);
+      if (allowed.has(bc)) vnp_Params.vnp_BankCode = bc;
+      else console.warn("[VNPay] Ignore unsupported bankCode:", bankCode);
     }
 
-    // 9. Sort keys & kÃ½ hash
-    vnp_Params = Object.keys(vnp_Params)
-      .sort()
-      .reduce((o, k) => ((o[k] = vnp_Params[k]), o), {});
-
-    const signData = qs.stringify(vnp_Params, { encode: false });
-    // Debug VNPay signing (remove in production)
+    // 9. Ký hash theo chuẩn VNPay
+    const signData = buildVnpHashData(vnp_Params);
     console.log("[VNPay] signData:", signData);
+
     const secureHash = crypto
       .createHmac("sha512", secretKey)
       .update(Buffer.from(signData, "utf-8"))
       .digest("hex");
-
     console.log("[VNPay] secureHash:", secureHash);
 
     vnp_Params.vnp_SecureHash = secureHash;
@@ -298,7 +343,7 @@ export async function createOrderWeb(req, res) {
     const paymentUrl = `${vnpUrl}?${qs.stringify(vnp_Params, { encode: true })}`;
     console.log("[VNPay] Params: ", vnp_Params);
 
-    // LÆ°u tham chiáº¿u Ä‘á»ƒ sau nÃ y tÃ¬m Ä‘Æ¡n theo vnp_TxnRef
+    // Lưu tham chiếu để sau này tìm đơn theo vnp_TxnRef
     order.payment = {
       ...(order.payment || {}),
       status: "pending",
@@ -314,7 +359,7 @@ export async function createOrderWeb(req, res) {
     console.error("createOrderWeb error:", e.stack || e);
     req.session.flash = {
       type: "error",
-      message: "KhÃ´ng thá»ƒ Ä‘áº·t hÃ ng. Vui lÃ²ng thá»­ láº¡i sau.",
+      message: "Không thể đặt hàng. Vui lòng thử lại sau.",
     };
     return res.redirect("/view/checkout");
   }
@@ -330,8 +375,7 @@ export async function vnpayReturn(req, res) {
     delete vnp_Params["vnp_SecureHash"];
     delete vnp_Params["vnp_SecureHashType"];
 
-    const sorted = sortObject(vnp_Params);
-    const signData = qs.stringify(sorted, { encode: false });
+    const signData = buildVnpHashData(vnp_Params);
     const signed = crypto
       .createHmac("sha512", process.env.VNP_HASHSECRET)
       .update(Buffer.from(signData, "utf-8"))
@@ -342,11 +386,11 @@ export async function vnpayReturn(req, res) {
     const order = await Order.findOne({ "payment.txnNo": vnp_TxnRef });
 
     if (!order) {
-      return res.render("pages/CheckoutFail", { reason: "KhÃ´ng tÃ¬m tháº¥y Ä‘Æ¡n hÃ ng" });
+      return res.render("pages/CheckoutFail", { reason: "Không tìm thấy đơn hàng" });
     }
 
     if (ok && vnp_Params["vnp_ResponseCode"] === "00") {
-      // cáº­p nháº­t tráº¡ng thÃ¡i
+      // cập nhật trạng thái
       order.status = "paid";
       order.vnp_TransactionNo = vnp_Params["vnp_TransactionNo"] || "";
       order.vnp_ResponseCode = vnp_Params["vnp_ResponseCode"] || "";
@@ -391,11 +435,13 @@ export async function vnpayReturn(req, res) {
     order.vnp_ResponseCode = vnp_Params["vnp_ResponseCode"] || "xx";
     await order.save();
 
-    return res.render("pages/CheckoutFail", { reason: "Thanh toÃ¡n tháº¥t báº¡i hoáº·c bá»‹ há»§y." });
+    return res.render("pages/CheckoutFail", {
+      reason: "Thanh toán thất bại hoặc bị hủy.",
+    });
   } catch (e) {
     console.error("vnpayReturn error:", e);
     return res.render("pages/CheckoutFail", {
-      reason: "Lá»—i xá»­ lÃ½ káº¿t quáº£ thanh toÃ¡n.",
+      reason: "Lỗi xử lý kết quả thanh toán.",
     });
   }
 }
@@ -408,8 +454,7 @@ export async function vnpayIpn(req, res) {
     delete vnp_Params["vnp_SecureHash"];
     delete vnp_Params["vnp_SecureHashType"];
 
-    const sorted = sortObject(vnp_Params);
-    const signData = qs.stringify(sorted, { encode: false });
+    const signData = buildVnpHashData(vnp_Params);
     const signed = crypto
       .createHmac("sha512", process.env.VNP_HASHSECRET)
       .update(Buffer.from(signData, "utf-8"))
@@ -480,13 +525,47 @@ export async function viewOrderDetail(req, res) {
   try {
     const order = await Order.findById(req.params.orderId).populate(
       "items.productId",
-      "name imageUrl price",
+      "name imageUrl price"
     );
     if (!order) return res.status(404).render("errors/404");
     return res.render("pages/OrderDetail", { order });
   } catch (e) {
     console.error("viewOrderDetail error:", e);
     return res.status(500).render("errors/500");
+  }
+}
+
+/* ====== GET /orders/track/:orderId ====== */
+export async function viewOrderTrack(req, res) {
+  try {
+    const order = await Order.findById(req.params.orderId).lean();
+    if (!order) return res.status(404).render("errors/404");
+    if (!req.user || String(order.userId) !== String(req.user.userId))
+      return res.status(403).render("errors/403");
+    return res.render("pages/OrderTrack", { order });
+  } catch (e) {
+    console.error("viewOrderTrack error:", e);
+    return res.status(500).render("errors/500");
+  }
+}
+
+/* ====== POST /orders/:orderId/cancel ====== */
+export async function cancelOrder(req, res) {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (!req.user || String(order.userId) !== String(req.user.userId))
+      return res.status(403).json({ message: "Forbidden" });
+
+    if (order.status !== "unpaid")
+      return res.status(400).json({ message: "Cannot cancel this order" });
+
+    order.status = "cancel";
+    await order.save();
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("cancelOrder error:", e);
+    return res.status(500).json({ message: "Cancel failed" });
   }
 }
 
@@ -501,6 +580,25 @@ export async function viewOrdersList(req, res) {
     return res.render("pages/Orders", { orders });
   } catch (e) {
     console.error("viewOrdersList error:", e);
+    return res.status(500).render("errors/500");
+  }
+}
+
+export async function viewInvoice(req, res) {
+  try {
+    const order = await Order.findById(req.params.orderId).populate(
+      "items.productId",
+      "name imageUrl price"
+    );
+    if (!order) return res.status(404).render("errors/404");
+    if (
+      !req.user ||
+      (String(order.userId) !== String(req.user.userId) && req.user.role !== "admin")
+    )
+      return res.status(403).render("errors/403");
+    return res.render("pages/Invoice", { order });
+  } catch (e) {
+    console.error("viewInvoice error:", e);
     return res.status(500).render("errors/500");
   }
 }

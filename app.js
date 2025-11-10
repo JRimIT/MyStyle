@@ -17,6 +17,7 @@ import staticRoute from "./routes/static.route.js";
 import categoryRoute from "./routes/category.route.js";
 import cartRoute from "./routes/cart.route.js";
 import orderRouter from "./routes/order.route.js";
+import shipperRouter from "./routes/shipper.route.js";
 
 // API routes
 import promotionRoute from "./routes/promotion.route.js";
@@ -24,6 +25,7 @@ import voucherRoute from "./routes/voucher.route.js";
 import wishlistRoute from "./routes/wishlist.route.js";
 import imageProxyRoute from "./routes/imageproxy.route.js";
 import reviewRouter from "./routes/review.route.js";
+import statsRouter from "./routes/stats.route.js";
 
 // VNPay
 import vnpayRouter from "./routes/vnpay.route.js";
@@ -93,6 +95,7 @@ app.use("/", productRoute);
 app.use("/", staticRoute);
 app.use("/", cartRoute);
 app.use("/", orderRouter);
+app.use("/", shipperRouter);
 
 // API routes
 app.use("/api", reviewRouter);
@@ -101,6 +104,7 @@ app.use("/api", promotionRoute);
 app.use("/api", voucherRoute);
 app.use("/", wishlistRoute);
 app.use("/", imageProxyRoute);
+app.use("/", statsRouter);
 
 // VNPay (tạo link, IPN nếu có)
 app.use("/vnpay", vnpayRouter);

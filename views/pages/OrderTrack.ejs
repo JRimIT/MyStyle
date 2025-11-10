@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<div style="height:80px"></div>
+
+<div class="container my-4">
+  <h3>Theo dõi đơn hàng</h3>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <p><strong>Mã đơn:</strong> <%= order._id %></p>
+      <p><strong>Trạng thái:</strong> <%= order.status %></p>
+      <p><strong>Tổng tiền:</strong> <%= Number(order.total||0).toLocaleString('vi-VN') %> VND</p>
+      <p><strong>Thanh toán:</strong> <%= (order.payment && order.payment.status) || 'pending' %></p>
+      <hr/>
+      <h6>Địa chỉ giao hàng</h6>
+      <pre class="mb-0"><%= JSON.stringify(order.shippingAddress || {}, null, 2) %></pre>
+    </div>
+  </div>
+  <div class="mt-3">
+    <a class="btn btn-outline-secondary" href="/orders">Quay lại danh sách</a>
+    <% if (order.status === 'unpaid') { %>
+      <button id="btnCancel" class="btn btn-danger ms-2">Hủy đơn</button>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  const btn = document.getElementById('btnCancel');
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Bạn chắc muốn hủy đơn này?')) return;
+      const res = await fetch(`/orders/<%= order._id %>/cancel`, { method: 'POST', headers:{ 'Accept':'application/json' } });
+      const data = await res.json().catch(()=>({}));
+      if (res.ok && data.ok) location.reload();
+      else alert(data.message || 'Không thể hủy đơn');
+    });
+  }
+</script>
+
+<%- include('../partials/footer') %>
+

@@ -1,0 +1,34 @@
+<%- include('../partials/header') %>
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Quản lý sản phẩm</h3>
+    <a class="btn btn-primary" href="/admin/products/create">Thêm sản phẩm</a>
+  </div>
+  <div class="table-responsive card shadow-sm">
+    <table class="table mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Tên</th><th>Giá</th><th>Danh mục</th><th>Featured</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% (products||[]).forEach(p => { %>
+          <tr>
+            <td><%= p.name %></td>
+            <td><%= Number(p.price||0).toLocaleString('vi-VN') %></td>
+            <td><%= p.category || '' %></td>
+            <td><%= p.isFeatured ? 'Yes' : 'No' %></td>
+            <td>
+              <a class="btn btn-sm btn-outline-primary" href="/admin/products/edit/<%= p._id %>">Sửa</a>
+              <form class="d-inline" action="/admin/products/delete/<%= p._id %>" method="POST" onsubmit="return confirm('Xóa sản phẩm này?')">
+                <button class="btn btn-sm btn-danger">Xóa</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>
+

@@ -6,7 +6,7 @@ const sessionConfig = {
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: "mongodb://localhost:27017/MyStyleList",
+    mongoUrl: process.env.MONGODB_URI || "mongodb://localhost:27017/MyStyleList",
     collectionName: "sessions",
     ttl: 14 * 24 * 60 * 60, // 14 days
   }),

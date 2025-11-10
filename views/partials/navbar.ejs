@@ -86,7 +86,7 @@
               <li><a class="dropdown-item" href="/orders">Orders</a></li>
               <li><a class="dropdown-item" href="/settings">Settings</a></li>
               <li><hr class="dropdown-divider" /></li>
-              <li><a class="dropdown-item text-danger" href="/">Logout</a></li>
+              <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
             </ul>
           </div>
         <% } else { %>
@@ -96,4 +96,33 @@
     </div>
   </div>
 </nav>
+
+<script>
+  // Ensure dropdown menu items always navigate when clicked
+  document.addEventListener('click', function (ev) {
+    const link = ev.target && ev.target.closest('.dropdown-menu .dropdown-item[href]');
+    if (link) {
+      // let Bootstrap close the dropdown, then navigate
+      setTimeout(() => { window.location.href = link.getAttribute('href'); }, 0);
+    }
+  });
+  // Defensive: keep dropdown above other overlays
+  try { document.querySelectorAll('.navbar-custom .dropdown-menu').forEach(el => { el.style.zIndex = 11000; }); } catch {}
+
+  // Explicitly toggle Bootstrap dropdown on avatar click and hide any search panel overlay
+  document.addEventListener('DOMContentLoaded', function(){
+    const trigger = document.getElementById('dropdownUser');
+    if (!trigger) return;
+    try {
+      // bootstrap comes from bundle included at top of navbar
+      const dd = bootstrap ? new bootstrap.Dropdown(trigger, { autoClose: true }) : null;
+      trigger.addEventListener('click', function(e){
+        e.preventDefault();
+        const panel = document.querySelector('.advanced-search-panel');
+        if (panel) panel.style.display = 'none';
+        if (dd && typeof dd.toggle === 'function') dd.toggle();
+      });
+    } catch (e) { /* ignore if bootstrap not present */ }
+  });
+</script>
 

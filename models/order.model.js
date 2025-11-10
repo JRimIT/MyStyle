@@ -35,6 +35,13 @@ const OrderSchema = new mongoose.Schema(
       note: String,
     },
     payment: PaymentSchema,
+    shipperId: { type: mongoose.Types.ObjectId, ref: "User", default: null },
+    shippingStatus: {
+      type: String,
+      enum: ["unassigned", "assigned", "picked_up", "in_transit", "delivered", "problem"],
+      default: "unassigned",
+    },
+    shippingNote: { type: String, default: "" },
   },
   { timestamps: true }
 );

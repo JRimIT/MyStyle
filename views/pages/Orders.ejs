@@ -1,0 +1,108 @@
+<%- include('../partials/header') %> <%- include('../partials/navbar') %>
+
+<!-- spacer to avoid navbar overlay -->
+<div style="height: 80px"></div>
+
+<style>
+    .od-hero {
+        background: linear-gradient(135deg, #fdf2f8, #ede9fe);
+        padding: 24px 0;
+    }
+    .od-title {
+        font-weight: 700;
+        margin: 0;
+    }
+    .badge-status {
+        font-weight: 600;
+    }
+    .st-paid {
+        background: #dcfce7;
+        color: #166534;
+    }
+    .st-unpaid {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .st-cancel {
+        background: #f3f4f6;
+        color: #374151;
+    }
+    .st-succ {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .st-pend {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .st-fail {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .card-table {
+        border: 0;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+</style>
+
+<div class="od-hero">
+    <div class="container">
+        <h2 class="od-title">Đơn hàng của tôi</h2>
+    </div>
+</div>
+
+<div class="container my-4">
+    <% if (!orders || orders.length === 0) { %>
+    <div class="alert alert-light border">Bạn chưa có đơn hàng nào.</div>
+    <% } else { %>
+    <div class="card card-table">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Trạng thái</th>
+                        <th>Thanh toán</th>
+                        <th>Tổng tiền</th>
+                        <th>Ngày tạo</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach(o => { const pst = (o.payment?.status)||'-'; %>
+                    <tr>
+                        <td class="fw-semibold"><%= o._id %></td>
+                        <td>
+                            <% if (o.status==='paid') { %>
+                            <span class="badge badge-status st-paid">PAID</span>
+                            <% } else if (o.status==='cancel') { %>
+                            <span class="badge badge-status st-cancel">CANCEL</span>
+                            <% } else { %>
+                            <span class="badge badge-status st-unpaid">UNPAID</span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if (pst==='success') { %>
+                            <span class="badge badge-status st-succ">SUCCESS</span>
+                            <% } else if (pst==='pending') { %>
+                            <span class="badge badge-status st-pend">PENDING</span>
+                            <% } else if (pst==='failed') { %>
+                            <span class="badge badge-status st-fail">FAILED</span>
+                            <% } else { %>
+                            <span class="badge bg-secondary">-</span>
+                            <% } %>
+                        </td>
+                        <td><%= Number(o.total||0).toLocaleString('vi-VN') %> ₫</td>
+                        <td><%= new Date(o.createdAt).toLocaleString('vi-VN') %></td>
+                        <td><a class="btn btn-sm btn-outline-primary" href="/orders/<%= o._id %>">Xem</a></td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>

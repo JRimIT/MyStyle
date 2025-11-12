@@ -1,6 +1,8 @@
 .contact-page {
     font-family: 'Segoe UI', sans-serif;
     color: #333;
+    padding-top: 100px;
+    min-height: 100vh;
 }
 
 .contact-page h2 {

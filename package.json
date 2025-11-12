@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon ./bin/www.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "seed:categories": "node scripts/seedCategories.js",
+    "seed:vouchers": "node scripts/seedVouchers.js"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +22,7 @@
     "cloudinary": "^1.41.3",
     "connect-mongo": "^5.1.0",
     "dayjs": "^1.11.13",
+    "debug": "^4.4.3",
     "dotenv": "^17.0.1",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
@@ -27,6 +30,8 @@
     "https": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
     "method-override": "^3.0.0",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.6.0",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.1",
     "multer": "^2.0.1",
@@ -35,6 +40,18 @@
     "passport": "^0.7.0",
     "passport-facebook": "^3.0.0",
     "passport-jwt": "^4.0.1",
+    "qrcode": "^1.5.4",
     "vnpay": "^2.4.0"
-  }
+  },
+  "bin": {
+    "project_mystyle": "bin/www.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JRimIT/MyStyle.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JRimIT/MyStyle/issues"
+  },
+  "homepage": "https://github.com/JRimIT/MyStyle#readme"
 }

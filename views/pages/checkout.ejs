@@ -1,0 +1,93 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<!-- spacer to avoid navbar overlay -->
+<div style="height:80px"></div>
+
+<style>
+  .co-hero { background: linear-gradient(135deg,#eef2ff,#e0f2fe); padding: 24px 0; }
+  .co-title { font-weight:700; margin:0; }
+  .co-card { border:0; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.08); }
+  .co-note { color:#64748b; }
+  .badge-vnp { background:#e0f2fe; color:#075985; }
+  .btn-pay { min-width: 220px; }
+  .small { font-size: .92rem; }
+  .required:after { content:' *'; color:#ef4444; }
+  .muted { color:#6b7280; }
+</style>
+
+<div class="co-hero">
+  <div class="container">
+    <h2 class="co-title">Checkout</h2>
+    <p class="co-note mb-0">Vui lòng điền thông tin nhận hàng và chọn phương thức thanh toán.</p>
+  </div>
+  </div>
+
+<div class="container my-4">
+  <div class="card co-card">
+    <div class="card-body p-4">
+      <form id="checkoutForm" action="/checkout" method="POST" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label required">Họ tên</label>
+          <input name="fullName" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label required">Số điện thoại</label>
+          <input name="phone" class="form-control" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label required">Địa chỉ</label>
+          <input name="address" class="form-control" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Ghi chú</label>
+          <textarea name="note" class="form-control" rows="3" placeholder="Ghi chú cho đơn hàng (không bắt buộc)"></textarea>
+        </div>
+
+        <div class="col-12 mt-2">
+          <h5 class="mb-2">Phương thức thanh toán</h5>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="paymentMethod" id="pmDirect" value="direct" checked>
+            <label class="form-check-label" for="pmDirect">VNPay <span class="badge badge-vnp">Thanh toán ngay</span></label>
+          </div>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="radio" name="paymentMethod" id="pmCard" value="cardbank">
+            <label class="form-check-label" for="pmCard">Thẻ/Ngân hàng (Card/Bank)</label>
+          </div>
+
+          <div id="bankWrap" class="mt-2" style="display:none;">
+            <label class="form-label">Chọn phương thức/ngân hàng (tùy chọn):</label>
+            <select name="bankCode" class="form-select">
+              <option value="">-- Theo màn hình VNPay --</option>
+              <option value="VNPAYQR">VNPAYQR (QR Pay)</option>
+              <option value="VNBANK">VNBANK (ATM/IB)</option>
+              <option value="INTCARD">INTCARD (VISA/Master/JCB)</option>
+              <option value="NCB">NCB</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="col-12 text-center mt-3">
+          <button type="submit" class="btn btn-primary btn-pay">
+            Xác nhận & Thanh toán
+          </button>
+          <p class="small muted mt-2 mb-0">Bạn sẽ được chuyển đến cổng VNPay để hoàn tất thanh toán.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Hiển/ẩn chọn bank khi chọn CardBank
+    const pmCard = document.getElementById('pmCard');
+    const pmDirect = document.getElementById('pmDirect');
+    const bankWrap = document.getElementById('bankWrap');
+    function toggleBank(){ bankWrap.style.display = pmCard.checked ? 'block':'none'; }
+    pmCard.addEventListener('change', toggleBank);
+    pmDirect.addEventListener('change', toggleBank);
+    toggleBank();
+  </script>
+</div>
+
+<%- include('../partials/footer') %>
+

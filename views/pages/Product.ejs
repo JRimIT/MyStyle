@@ -3,71 +3,137 @@
 <link rel="stylesheet" href="/css/Product.css" />
 
 <div class="product-page">
-  <%- include('../partials/navbar.ejs') %>
+    <%- include('../partials/navbar.ejs') %>
 
-  <div class="container mt-5">
-    <div class="row gx-4">
-      <!-- Left: images -->
-      <div class="col-lg-6">
-        <div class="product-gallery">
-          <div class="main-image">
-            <img id="mainProductImg" src="<%= (product.images && product.images[0]) || product.imageUrl || '/placeholder.png' %>" alt="<%= product.name %>">
-          </div>
-          <div class="thumbs mt-3 d-flex gap-2">
-            <% (product.images || []).forEach(function(img){ %>
-              <img class="thumb" src="<%= img %>" alt="thumb" />
-            <% }) %>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right: info -->
-      <div class="col-lg-6">
-        <div class="product-info">
-          <h1 class="product-title"><%= product.name %></h1>
-          <div class="product-price h4 text-danger"><%= (product.price||0).toLocaleString('vi-VN') %>₫</div>
-
-          <div class="product-meta mt-3 mb-3">
-            <div class="mb-2"><strong>Danh mục:</strong> <%= product.category || '—' %></div>
-            <div class="mb-2"><strong>Mã sản phẩm:</strong> <%= product._id %></div>
-          </div>
-
-          <div class="size-selector mb-3">
-            <div class="small text-muted mb-2">Chọn kích thước</div>
-            <div class="d-flex gap-2 flex-wrap">
-              <% (product.sizes || []).forEach(function(sz){ %>
-                <button class="btn btn-outline-secondary size-select" data-size="<%= sz %>"><%= sz %></button>
-              <% }) %>
+    <div class="container mt-5">
+        <div class="row gx-4">
+            <!-- Left: images -->
+            <div class="col-lg-6">
+                <div class="product-gallery">
+                    <div class="main-image">
+                        <img
+                            id="mainProductImg"
+                            src="<%= (product.images && product.images[0]) || product.imageUrl || '/placeholder.png' %>"
+                            alt="<%= product.name %>"
+                        />
+                    </div>
+                    <div class="thumbs mt-3 d-flex gap-2">
+                        <% (product.images || []).forEach(function(img){ %>
+                        <img class="thumb" src="<%= img %>" alt="thumb" />
+                        <% }) %>
+                    </div>
+                </div>
             </div>
-          </div>
 
-          <div class="action-row d-flex align-items-center gap-3 mt-3">
-            <button id="addToCartBtn" class="btn btn-dark btn-lg">Thêm vào giỏ hàng</button>
-            <button id="buyNowBtn" class="btn btn-outline-danger btn-lg">Mua ngay</button>
-            <div id="stockNotice" class="text-muted small">&nbsp;</div>
-          </div>
+            <!-- Right: info -->
+            <div class="col-lg-6">
+                <div class="product-info">
+                    <h1 class="product-title"><%= product.name %></h1>
+                    <div class="product-price h4 text-danger"><%= (product.price||0).toLocaleString('vi-VN') %>₫</div>
 
-          <div class="product-description mt-4">
-            <h5>Mô tả</h5>
-            <p><%= product.description || 'Chưa có mô tả cho sản phẩm này.' %></p>
-          </div>
+                    <div class="product-meta mt-3 mb-3">
+                        <div class="mb-2"><strong>Danh mục:</strong> <%= product.category || '—' %></div>
+                        <div class="mb-2"><strong>Mã sản phẩm:</strong> <%= product._id %></div>
+                    </div>
 
+                    <div class="size-selector mb-3">
+                        <div class="small text-muted mb-2">Chọn kích thước</div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <% (product.sizes || []).forEach(function(sz){ %>
+                            <button class="btn btn-outline-secondary size-select" data-size="<%= sz %>">
+                                <%= sz %>
+                            </button>
+                            <% }) %>
+                        </div>
+                    </div>
+
+                    <div class="action-row d-flex align-items-center gap-3 mt-3">
+                        <button id="addToCartBtn" class="btn btn-dark btn-lg">Thêm vào giỏ hàng</button>
+                        <button id="buyNowBtn" class="btn btn-outline-danger btn-lg">Mua ngay</button>
+                        <div id="stockNotice" class="text-muted small">&nbsp;</div>
+                    </div>
+
+                    <div class="product-description mt-4">
+                        <h5>Mô tả</h5>
+                        <p><%= product.description || 'Chưa có mô tả cho sản phẩm này.' %></p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <h4>Thông tin chi tiết</h4>
+                <div class="card p-3"><%= product.description || '' %></div>
+            </div>
+        </div>
     </div>
 
-    <div class="row mt-5">
-      <div class="col-12">
-        <h4>Thông tin chi tiết</h4>
-        <div class="card p-3">
-          <%= product.description || '' %>
-        </div>
-      </div>
-    </div>
+    <%- include('../partials/footer.ejs') %>
 
-  </div>
+    <!-- <script src="/js/product.js"></script> -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const addToCartBtn = document.getElementById('addToCartBtn');
+            const buyNowBtn = document.getElementById('buyNowBtn');
+            const productId = '<%= product._id %>';
 
-  <%- include('../partials/footer.ejs') %>
+            if (!addToCartBtn) return;
 
-  <script src="/js/product.js"></script>
+            addToCartBtn.addEventListener('click', async () => {
+                try {
+                    const response = await fetch('/cart/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            productId: productId,
+                            quantity: 1, // Product page không chọn số lượng → default = 1
+                        }),
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        const originalText = addToCartBtn.innerHTML;
+                        addToCartBtn.innerHTML = '<i class="fas fa-check"></i> Đã thêm!';
+                        addToCartBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+                        addToCartBtn.disabled = true;
+
+                        const cartBadge = document.querySelector('.cart-icon .badge');
+                        if (cartBadge) {
+                            cartBadge.textContent = result.cartCount;
+                        }
+
+                        setTimeout(() => {
+                            addToCartBtn.innerHTML = originalText;
+                            addToCartBtn.style.background = '';
+                            addToCartBtn.disabled = false;
+                        }, 2000);
+                    } else {
+                        if (result.message && result.message.includes('token')) {
+                            alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
+                            window.location.href = '/login';
+                        } else {
+                            alert(result.message || 'Có lỗi xảy ra, vui lòng thử lại!');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Không thể kết nối máy chủ!');
+                }
+            });
+
+            // Điều hướng đến trang checkout ngay
+            if (buyNowBtn) {
+                buyNowBtn.addEventListener('click', async () => {
+                    await fetch('/cart/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId, quantity: 1 }),
+                    });
+                    window.location.href = '/checkout';
+                });
+            }
+        });
+    </script>
 </div>

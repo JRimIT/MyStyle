@@ -1,3 +1,6 @@
+// ✅ NẠP .env SỚM NHẤT (trước mọi import dùng process.env)
+import "dotenv/config";
+
 import app from "../app.js";
 import https from "https";
 import fs from "fs";
@@ -11,29 +14,38 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const debug = debugLib("https-facebook:server");
 
+// Lấy PORT từ .env (mặc định 4000)
 const port = normalizePort(process.env.PORT || "4000");
 app.set("port", port);
 
-// HTTPS Options
-const httpsOptions = {
-  key: fs.readFileSync(`${__dirname}/key.pem`),
-  cert: fs.readFileSync(`${__dirname}/cert.pem`),
-};
+// ✅ Đọc key/cert HTTPS (nếu thiếu thì log ra lỗi rõ ràng)
+let httpsOptions;
+try {
+  httpsOptions = {
+    key: fs.readFileSync(`${__dirname}/key.pem`),
+    cert: fs.readFileSync(`${__dirname}/cert.pem`),
+  };
+} catch (e) {
+  console.error("❌ Không tìm thấy key.pem/cert.pem trong bin/. Vui lòng cấp chứng chỉ hoặc đổi sang HTTP.");
+  console.error("   Đang thoát để bạn kiểm tra lại…");
+  process.exit(1);
+}
 
-// // Start server
-// const server = https.createServer(httpsOptions, app);
-// server.listen(port, () => {
-//     console.log(✅ HTTPS Server running at https://localhost:${port});
-// });
-// server.on('error', onError);
-// server.on('listening', () => onListening(server));
+// ✅ Kiểm tra cấu hình VNPay khi khởi động (để phát hiện sớm)
+console.log("[BOOT VNPay ENV]", {
+  TMNCODE: process.env.VNP_TMNCODE,
+  HASHSECRET_PREFIX: (process.env.VNP_HASHSECRET || "").slice(0, 6),
+  URL: process.env.VNP_URL,
+  RETURN: process.env.VNP_RETURNURL,
+  IPN: process.env.VNP_IPNURL,
+});
 
-// Kết nối MongoDB rồi khởi chạy server
+// Kết nối MongoDB rồi khởi chạy server HTTPS
 connectToMongoDB().then(() => {
   const server = https.createServer(httpsOptions, app);
 
   server.listen(port, () => {
-    console.log(`HTTPS Server is running at https://localhost:${port}`);
+    console.log(`✅ HTTPS Server running at https://localhost:${port}`);
   });
 
   server.on("error", (error) => onError(error, port));
@@ -42,9 +54,9 @@ connectToMongoDB().then(() => {
 
 // Helpers
 function normalizePort(val) {
-  const port = parseInt(val, 10);
-  if (isNaN(port)) return val;
-  if (port >= 0) return port;
+  const p = parseInt(val, 10);
+  if (isNaN(p)) return val;
+  if (p >= 0) return p;
   return false;
 }
 
@@ -55,11 +67,9 @@ function onError(error) {
     case "EACCES":
       console.error(`${bind} requires elevated privileges`);
       process.exit(1);
-      break;
     case "EADDRINUSE":
       console.error(`${bind} is already in use`);
       process.exit(1);
-      break;
     default:
       throw error;
   }

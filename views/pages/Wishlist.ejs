@@ -1,0 +1,118 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<!-- spacer to avoid fixed-top navbar overlay -->
+<div style="height:80px"></div>
+
+<style>
+  .wl-hero { background: linear-gradient(135deg, #f8fafc, #f1f5f9); padding: 32px 0; }
+  .wl-title { font-weight: 600; }
+  .wl-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 992px){ .wl-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 768px){ .wl-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px){ .wl-grid { grid-template-columns: 1fr; } }
+  .wl-card { border: 0; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.06); background: #fff; }
+  .wl-thumb { aspect-ratio: 1 / 1; width: 100%; object-fit: cover; }
+  .wl-name { font-weight: 600; font-size: 16px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wl-price { color: #0f172a; font-weight: 600; }
+  .wl-actions .btn { width: 100%; }
+  .wl-empty { text-align:center; padding: 48px 0; color: #64748b; }
+  .wl-empty i { color: #94a3b8; }
+  .badge-rating { background: #fef3c7; color: #92400e; font-weight: 600; }
+  .muted { color:#6b7280; }
+  .btn-like { border-color:#ef4444; color:#ef4444; }
+  .btn-like:hover { background:#ef4444; color:#fff; }
+</style>
+
+<div class="wl-hero">
+  <div class="container d-flex justify-content-between align-items-center">
+    <h2 class="wl-title mb-0">Wishlist</h2>
+    <div class="muted small"><i class="fas fa-heart me-1"></i> <%= (wishlist.items||[]).length %> sản phẩm yêu thích</div>
+  </div>
+  </div>
+
+<div class="container mt-4">
+  <% if (!wishlist.items || wishlist.items.length === 0) { %>
+    <div class="wl-empty">
+      <div class="display-6 mb-3"><i class="far fa-heart"></i></div>
+      <p class="mb-3">Bạn chưa thêm sản phẩm nào vào wishlist.</p>
+      <a class="btn btn-primary" href="/Home"><i class="fas fa-shopping-bag me-2"></i> Khám phá sản phẩm</a>
+    </div>
+  <% } else { %>
+    <div class="wl-grid">
+      <% wishlist.items.forEach((it) => { const p = it.productId || {}; %>
+        <div class="card wl-card">
+          <% if (p.imageUrl) { %>
+            <img class="wl-thumb" src="/img?url=<%= encodeURIComponent(p.imageUrl) %>" alt="<%= p.name || 'item' %>" referrerpolicy="no-referrer"/>
+          <% } else { %>
+            <div class="bg-light d-flex align-items-center justify-content-center" style="aspect-ratio:1/1;">
+              <i class="far fa-image text-muted"></i>
+            </div>
+          <% } %>
+          <div class="card-body">
+            <div class="wl-name" title="<%= p.name || it.productId %>"><%= p.name || it.productId %></div>
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div class="wl-price"><%= Number(p.price||0).toLocaleString('vi-VN') %> ₫</div>
+              <% if (typeof p.averageRating !== 'undefined') { %>
+                <span class="badge badge-rating"><i class="fas fa-star me-1"></i><%= (p.averageRating||0).toFixed(1) %></span>
+              <% } %>
+            </div>
+            <div class="wl-actions d-grid gap-2">
+              <button class="btn btn-primary btn-sm" onclick="addFromWishlist('<%= p._id || it.productId %>', this)">
+                <i class="fas fa-cart-plus me-1"></i> Thêm vào giỏ
+              </button>
+              <button class="btn btn-outline-danger btn-sm" onclick="removeItem('<%= p._id || it.productId %>', this)">
+                <i class="fas fa-trash-alt me-1"></i> Xóa khỏi wishlist
+              </button>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<script>
+  async function removeItem(productId, btn){
+    try{
+      const res = await fetch(`/wishlist/remove/${productId}`,{ method:'DELETE', headers:{ 'Accept':'application/json' } });
+      if(!res.ok){ alert('Không thể xóa khỏi wishlist.'); return; }
+      const card = btn.closest('.wl-card');
+      if(card){ card.remove(); }
+      const grid = document.querySelector('.wl-grid');
+      if(grid && grid.children.length === 0){ location.reload(); }
+    }catch(e){ console.error(e); alert('Lỗi kết nối.'); }
+  }
+
+  async function addFromWishlist(productId, btn){
+    try{
+      const res = await fetch('/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ productId, quantity: 1 })
+      });
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok){
+        if (data?.message && data.message.toLowerCase().includes('login')) {
+          location.href = '/login';
+          return;
+        }
+        alert(data.message || 'Không thể thêm vào giỏ.');
+        return;
+      }
+      // update navbar cart badge if present
+      const badge = document.querySelector('.cart-icon .badge');
+      if (badge && typeof data.cartCount !== 'undefined') badge.textContent = data.cartCount;
+      // visual feedback
+      btn.classList.remove('btn-primary');
+      btn.classList.add('btn-success');
+      btn.innerHTML = '<i class="fas fa-check"></i> Đã thêm';
+      btn.disabled = true;
+    }catch(e){
+      console.error(e);
+      alert('Lỗi kết nối.');
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

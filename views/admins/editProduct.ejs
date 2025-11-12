@@ -1,91 +1,106 @@
 <%- include('../partials/header.ejs') %>
 
 <div class="bodyAdmin">
-  <%- include('../partials/navbar.ejs', { user: { role: 'admin', name: 'Admin' } }) %>
+    <%- include('../partials/navbar.ejs', { user: { role: 'admin', name: 'Admin' } }) %>
 
-  <div class="container mt-5 pt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Edit Product</h2>
-      <a href="/admin/products" class="btn btn-outline-secondary">Back to list</a>
-    </div>
-
-    <%
-      const p = (typeof product !== 'undefined' && product) ? product : {};
-      const sizesCsv  = Array.isArray(p.sizes)  ? p.sizes.join(', ')  : '';
-      const badgesCsv = Array.isArray(p.badges) ? p.badges.join(', ') : '';
-      const imagesCsv = Array.isArray(p.images) ? p.images.join(', ') : '';
-    %>
-
-    <div class="row">
-      <div class="col-md-8">
-        <div class="card">
-          <div class="card-body">
-            <form action="/productCrud/<%= p._id %>?_method=PUT&redirect=/admin/products" method="POST">
-              <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input name="name" value="<%= p.name || '' %>" class="form-control" required />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Price</label>
-                <input name="price" type="number" step="0.01" value="<%= (p.price != null ? p.price : '') %>" class="form-control" required />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Category</label>
-                <input name="category" value="<%= p.category || '' %>" class="form-control" />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Image URL</label>
-                <input name="imageUrl" value="<%= p.imageUrl || '' %>" class="form-control" placeholder="/uploads/... or http(s)://..." />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Images (CSV)</label>
-                <input name="imagesCsv" value="<%= imagesCsv %>" class="form-control" placeholder="url1, url2, url3" />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Sizes (CSV)</label>
-                <input name="sizesCsv" value="<%= sizesCsv %>" class="form-control" placeholder="S, M, L, XL" />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Badges (CSV)</label>
-                <input name="badgesCsv" value="<%= badgesCsv %>" class="form-control" placeholder="new, hot, sale" />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Description</label>
-                <textarea name="description" rows="4" class="form-control"><%= p.description || '' %></textarea>
-              </div>
-
-              <button class="btn btn-primary" type="submit">Update Product</button>
-            </form>
-          </div>
+    <div class="container mt-5 pt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Edit Product</h2>
+            <a href="/admin/products" class="btn btn-outline-secondary">Back to list</a>
         </div>
-      </div>
 
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body text-center">
-            <h6>Current Image</h6>
-            <% if (p.imageUrl) { %>
-              <img src="<%= p.imageUrl %>" alt="product image" class="img-fluid" />
-            <% } else { %>
-              <p class="text-muted">No image</p>
-            <% } %>
-            <div class="mt-2 text-muted small">
-              Created: <%= p.createdAt ? new Date(p.createdAt).toLocaleString('vi-VN') : '-' %><br>
-              Reviews: <%= Array.isArray(p.reviews) ? p.reviews.length : 0 %>
+        <% const p = (typeof product !== 'undefined' && product) ? product : {}; const sizesCsv = Array.isArray(p.sizes)
+        ? p.sizes.join(', ') : ''; const badgesCsv = Array.isArray(p.badges) ? p.badges.join(', ') : ''; const imagesCsv
+        = Array.isArray(p.images) ? p.images.join(', ') : ''; %>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/admin/products/edit/<%= p._id %>?redirect=/admin/products" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">Name</label>
+                                <input name="name" value="<%= p.name || '' %>" class="form-control" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Price</label>
+                                <input
+                                    name="price"
+                                    type="number"
+                                    step="0.01"
+                                    value="<%= (p.price != null ? p.price : '') %>"
+                                    class="form-control"
+                                    required
+                                />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Category</label>
+                                <input name="category" value="<%= p.category || '' %>" class="form-control" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Image URL</label>
+                                <input
+                                    name="imageUrl"
+                                    value="<%= p.imageUrl || '' %>"
+                                    class="form-control"
+                                    placeholder="/uploads/... or http(s)://..."
+                                />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Images (CSV)</label>
+                                <input
+                                    name="imagesCSV"
+                                    value="<%= imagesCsv %>"
+                                    class="form-control"
+                                    placeholder="url1, url2, url3"
+                                />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Sizes (CSV)</label>
+                                <input name="sizes" class="form-control" placeholder="S, M, L, XL" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Badges (CSV)</label>
+                                <input name="badges" class="form-control" placeholder="new, hot, sale" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea name="description" rows="4" class="form-control">
+<%= p.description || '' %></textarea
+                                >
+                            </div>
+
+                            <button class="btn btn-primary" type="submit">Update Product</button>
+                        </form>
+                    </div>
+                </div>
             </div>
-          </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6>Current Image</h6>
+                        <% if (p.imageUrl) { %>
+                        <img src="<%= p.imageUrl %>" alt="product image" class="img-fluid" />
+                        <% } else { %>
+                        <p class="text-muted">No image</p>
+                        <% } %>
+                        <div class="mt-2 text-muted small">
+                            Created: <%= p.createdAt ? new Date(p.createdAt).toLocaleString('vi-VN') : '-' %><br />
+                            Reviews: <%= Array.isArray(p.reviews) ? p.reviews.length : 0 %>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-  </div>
-
-  <%- include('../partials/footer.ejs') %>
+    <%- include('../partials/footer.ejs') %>
 </div>

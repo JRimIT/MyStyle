@@ -1,4 +1,5 @@
 import passport from 'passport';
+import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
@@ -7,6 +8,49 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const opts = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: process.env.JWT_SECRET,
+};
+// Passport setup
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+passport.deserializeUser((obj, done) => {
+    done(null, obj);
+});
+
+// Facebook Strategy
+passport.use(
+    new FacebookStrategy(
+        {
+            clientID: process.env.FACEBOOK_APP_ID,
+            clientSecret: process.env.FACEBOOK_APP_SECRET,
+            callbackURL: 'https://localhost:4001/auth/facebook/callback',
+            profileFields: ['id', 'displayName', 'emails'],
+        },
+        async (accessToken, refreshToken, profile, done) => {
+            console.log('Profile: ', profile);
+
+            try {
+                let user = await User.findOne({ facebookId: profile.id });
+                if (!user) {
+                    user = await User.create({
+                        facebookId: profile.id,
+                        username: profile.displayName,
+                    });
+                }
+                console.log('User facebook: ', user);
+
+                return done(null, user);
+            } catch (err) {
+                return done(err, null);
+            }
+        },
+    ),
+);
+
+// JWT Strategy
+const jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: process.env.JWT_SECRET,
 };
@@ -86,8 +130,6 @@ export const verifyAdmin = (req, res, next) => {
     });
 };
 
-export const jwtPassport = passport;
-
 // Middleware: for web page requests, redirect to /login if unauthenticated
 export const verifyUserOrRedirect = (req, res, next) => {
     const isApi = (req.path || '').startsWith('/api/');
@@ -131,3 +173,5 @@ export const verifyUserOrRedirect = (req, res, next) => {
         next();
     });
 };
+
+export const jwtPassport = passport;

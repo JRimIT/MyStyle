@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-    facebookId: { type: String, sparse: true },
-
+    facebookId: { type: String, unique: true },
     username: {
         type: String,
         required: true,

@@ -80,10 +80,7 @@ router.get('/auth/facebook', passport.authenticate('facebook'));
 
 router.get(
     '/auth/facebook/callback',
-    passport.authenticate('facebook', {
-        session: false,
-        failureRedirect: '/login',
-    }),
+    passport.authenticate('facebook', { session: false, failureRedirect: '/login' }),
     (req, res) => {
         const token = generateJWT(req.user);
         const user = req.user;
@@ -91,7 +88,7 @@ router.get(
 
         req.session.token = token;
         req.session.user = user;
-        res.redirect('/listFeatureFood');
+        res.redirect('/listFeatureClothes');
         // res.json({ token }); // Gửi JWT về client
     },
 );

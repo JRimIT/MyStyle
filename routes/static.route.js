@@ -80,7 +80,7 @@ router.get('/profile', verifyUser, async (req, res) => {
 });
 
 // Update profile (requires authentication)
-router.post('/profile/update', verifyUser, verifyAdmin, async (req, res) => {
+router.post('/profile/update', verifyUser, async (req, res) => {
     try {
         const { fullName, email, phone, address, postCode, dateOfBirth, avatarUrl } = req.body;
         const userId = req.user.userId;

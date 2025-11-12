@@ -38,18 +38,30 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a class="dropdown-item" href="/admin/Home"><i class="fas fa-home"></i> Dashboard</a>
+                            <a class="dropdown-item" href="/admin/statistics">
+                                <i class="fas fa-chart-line"></i> Statistics
+                            </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="/admin/products"><i class="fas fa-box"></i> Sản phẩm</a>
+                            <a class="dropdown-item" href="/admin/manageUser">
+                                <i class="fas fa-users-cog"></i> Manage Users
+                            </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="/admin/categories"><i class="fas fa-tags"></i> Danh mục</a>
+                            <a class="dropdown-item" href="/admin/products"
+                                ><i class="fas fa-box"></i> Manage Product</a
+                            >
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/admin/categories"><i class="fas fa-tags"></i> Categories</a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="/admin/vouchers"
                                 ><i class="fas fa-ticket-alt"></i> Voucher</a
                             >
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/admin/review"><i class="fas fa-ticket-alt"></i> Reviews</a>
                         </li>
                     </ul>
                 </li>
@@ -129,3 +141,32 @@
         </div>
     </div>
 </nav>
+
+<!-- <script>
+    // Ensure dropdown menu items always navigate when clicked
+    document.addEventListener('click', function (ev) {
+      const link = ev.target && ev.target.closest('.dropdown-menu .dropdown-item[href]');
+      if (link) {
+        // let Bootstrap close the dropdown, then navigate
+        setTimeout(() => { window.location.href = link.getAttribute('href'); }, 0);
+      }
+    });
+    // Defensive: keep dropdown above other overlays
+    try { document.querySelectorAll('.navbar-custom .dropdown-menu').forEach(el => { el.style.zIndex = 11000; }); } catch {}
+  
+    // Explicitly toggle Bootstrap dropdown on avatar click and hide any search panel overlay
+    document.addEventListener('DOMContentLoaded', function(){
+      const trigger = document.getElementById('dropdownUser');
+      if (!trigger) return;
+      try {
+        // bootstrap comes from bundle included at top of navbar
+        const dd = bootstrap ? new bootstrap.Dropdown(trigger, { autoClose: true }) : null;
+        trigger.addEventListener('click', function(e){
+          e.preventDefault();
+          const panel = document.querySelector('.advanced-search-panel');
+          if (panel) panel.style.display = 'none';
+          if (dd && typeof dd.toggle === 'function') dd.toggle();
+        });
+      } catch (e) { /* ignore if bootstrap not present */ }
+    }); -->
+  </script>

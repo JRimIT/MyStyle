@@ -102,7 +102,7 @@ app.use('/', contactRoutes);
 app.use('/api', reviewRouter);
 app.use('/api', categoryRoute);
 app.use('/api', promotionRoute);
-app.use('/api', voucherRoute);
+app.use('/vouchers', voucherRoute);
 app.use('/', wishlistRoute);
 app.use('/', imageProxyRoute);
 app.use('/', adminRoute);

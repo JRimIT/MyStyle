@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+  <title>Admin - User Detail</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  <div class="container my-4">
+    <a href="/admin/users" class="btn btn-link">&larr; Back</a>
+    <div id="userCard"></div>
+  </div>
+
+  <script>
+    const userId = "<%= userId %>";
+  </script>
+  <script src="/js/admin-user-detail.js"></script>
+</body>
+</html>

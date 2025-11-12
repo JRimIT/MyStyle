@@ -31,100 +31,108 @@
                 <li class="nav-item"><a class="nav-link" href="/wishlist">Wishlist</a></li>
 
                 <!-- Admin -->
+                <!-- Admin -->
                 <% if (user && user.role==='admin' ) { %>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-shield"></i> Admin
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <a class="dropdown-item" href="/admin/Home"><i class="fas fa-home"></i> Dashboard</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="/admin/products"><i class="fas fa-box"></i> Sản phẩm</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="/admin/categories"><i class="fas fa-tags"></i> Danh mục</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="/admin/vouchers"
-                                ><i class="fas fa-ticket-alt"></i> Voucher</a
-                            >
-                        </li>
-                    </ul>
-                </li>
-                <% } %>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-shield"></i> Admin
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                            <li>
+                                <a class="dropdown-item" href="/admin/statistics">
+                                    <i class="fas fa-chart-line"></i> Statistics
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/admin/manageUser">
+                                    <i class="fas fa-users-cog"></i> Manage Users
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/admin/products">
+                                    <i class="fas fa-box"></i> Products
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/admin/categories">
+                                    <i class="fas fa-tags"></i> Categories
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/vouchers">
+                                    <i class="fas fa-ticket-alt"></i> Voucher
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <% } %>
 
-                <!-- Shipper -->
-                <% if (user && user.role==='shipper' ) { %>
-                <li class="nav-item">
-                    <a class="nav-link" href="/shipper/dashboard"><i class="fas fa-truck"></i> Shipper Dashboard</a>
-                </li>
-                <% } %>
+
+                        <!-- Shipper -->
+                        <% if (user && user.role==='shipper' ) { %>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/shipper/dashboard"><i class="fas fa-truck"></i> Shipper
+                                    Dashboard</a>
+                            </li>
+                            <% } %>
             </ul>
 
             <!-- Search bar + cart + user -->
             <div class="d-flex search-bar me-4 position-relative" role="search">
-                <%- include('searchBar') %> <% if (typeof cartCount !== 'undefined') { %>
-                <div class="cart-icon position-relative me-3">
-                    <a href="/view/cart" class="position-relative text-decoration-none text-dark">
-                        <i class="fas fa-shopping-cart fa-lg"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            <%= cartCount %>
-                        </span>
-                    </a>
-                </div>
-                <% } %> <% if (user) { %>
-                <div class="d-flex align-items-center me-3">
-                    <div class="balance-display">
-                        <i class="fas fa-wallet text-success"></i>
-                        <span class="balance-amount" id="navBalance"
-                            ><%= user.balance ? user.balance.toLocaleString('vi-VN') : 0 %></span
-                        >
-                        <span class="text-muted">VND</span>
-                    </div>
-                </div>
-                <% } %>
+                <%- include('searchBar') %>
+                    <% if (typeof cartCount !=='undefined' ) { %>
+                        <div class="cart-icon position-relative me-3">
+                            <a href="/view/cart" class="position-relative text-decoration-none text-dark">
+                                <i class="fas fa-shopping-cart fa-lg"></i>
+                                <span
+                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    <%= cartCount %>
+                                </span>
+                            </a>
+                        </div>
+                        <% } %>
+                            <% if (user) { %>
+                                <div class="d-flex align-items-center me-3">
+                                    <div class="balance-display">
+                                        <i class="fas fa-wallet text-success"></i>
+                                        <span class="balance-amount" id="navBalance">
+                                            <%= user.balance ? user.balance.toLocaleString('vi-VN') : 0 %>
+                                        </span>
+                                        <span class="text-muted">VND</span>
+                                    </div>
+                                </div>
+                                <% } %>
 
-                <!-- Avatar or Login -->
-                <% if (user) { %>
-                <div class="dropdown">
-                    <a
-                        href="#"
-                        class="d-flex align-items-center text-decoration-none dropdown-toggle"
-                        id="dropdownUser"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                    >
-                        <img
-                            src="<%= user.avatarUrl || 'https://i.pinimg.com/1200x/dc/6c/b0/dc6cb0521d182f959da46aaee82e742f.jpg' %>"
-                            alt="avatar"
-                            width="40"
-                            height="40"
-                            class="rounded-circle"
-                        />
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
-                        <li><a class="dropdown-item" href="/profile">Profile</a></li>
-                        <li>
-                            <a class="dropdown-item wallet-item" href="/wallet"
-                                ><i class="fas fa-wallet"></i> Ví của tôi</a
-                            >
-                        </li>
-                        <li>
-                            <a class="dropdown-item recharge-item" href="/wallet"
-                                ><i class="fas fa-plus-circle"></i> Nạp tiền</a
-                            >
-                        </li>
-                        <li><a class="dropdown-item" href="/orders">Orders</a></li>
-                        <li><a class="dropdown-item" href="/settings">Settings</a></li>
-                        <li><hr class="dropdown-divider" /></li>
-                        <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
-                    </ul>
-                </div>
-                <% } else { %>
-                <a href="/login" class="btn btn-outline-primary">Login</a>
-                <% } %>
+                                    <!-- Avatar or Login -->
+                                    <% if (user) { %>
+                                        <div class="dropdown">
+                                            <a href="#"
+                                                class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                                                id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <img src="<%= user.avatarUrl || 'https://i.pinimg.com/1200x/dc/6c/b0/dc6cb0521d182f959da46aaee82e742f.jpg' %>"
+                                                    alt="avatar" width="40" height="40" class="rounded-circle" />
+                                            </a>
+                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
+                                                <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                                                <li>
+                                                    <a class="dropdown-item wallet-item" href="/wallet"><i
+                                                            class="fas fa-wallet"></i> Ví của tôi</a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item recharge-item" href="/wallet"><i
+                                                            class="fas fa-plus-circle"></i> Nạp tiền</a>
+                                                </li>
+                                                <li><a class="dropdown-item" href="/orders">Orders</a></li>
+                                                <li><a class="dropdown-item" href="/settings">Settings</a></li>
+                                                <li>
+                                                    <hr class="dropdown-divider" />
+                                                </li>
+                                                <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
+                                            </ul>
+                                        </div>
+                                        <% } else { %>
+                                            <a href="/login" class="btn btn-outline-primary">Login</a>
+                                            <% } %>
             </div>
         </div>
     </div>

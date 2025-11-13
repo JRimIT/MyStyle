@@ -213,7 +213,7 @@ export async function createOrderWeb(req, res) {
     const tmnCode = process.env.VNP_TMNCODE;
     const secretKey = process.env.VNP_HASHSECRET;
     const vnpUrl = process.env.VNP_URL;
-    const returnUrl = (function(){
+    const returnUrl = (function () {
       const envUrl = (process.env.VNP_RETURNURL || "").trim();
       const isValidEnvUrl = (() => {
         try {
@@ -283,14 +283,22 @@ export async function createOrderWeb(req, res) {
       .reduce((o, k) => ((o[k] = vnp_Params[k]), o), {});
 
     const signData = qs.stringify(vnp_Params, { encode: false });
-    // Debug VNPay signing (remove in production)
-    console.log("[VNPay] signData:", signData);
+
+    // 🧠 Debug chi tiết VNPay
+    console.log("========== VNPay DEBUG START ==========");
+    console.log("[VNPay] TMNCODE:", tmnCode);
+    console.log("[VNPay] HASHSECRET (ẩn):", secretKey ? "(đã có)" : "(thiếu!)");
+    console.log("[VNPay] SIGN DATA:", signData);
+    console.log("[VNPay] PARAMS trước hash:", vnp_Params);
+
     const secureHash = crypto
       .createHmac("sha512", secretKey)
       .update(Buffer.from(signData, "utf-8"))
       .digest("hex");
 
-    console.log("[VNPay] secureHash:", secureHash);
+    console.log("[VNPay] SECURE HASH (local):", secureHash);
+    console.log("========== VNPay DEBUG END ==========\n");
+
 
     vnp_Params.vnp_SecureHash = secureHash;
     vnp_Params.vnp_SecureHashType = "SHA512";

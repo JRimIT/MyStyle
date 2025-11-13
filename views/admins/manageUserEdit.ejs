@@ -1,94 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit User</title>
-    <link rel="stylesheet" href="/css/navbar.css">
-    <link rel="stylesheet" href="/css/Menu.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 50%;
-            margin: 20px auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        input[type="text"],
-        input[type="email"],
-        select {
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: #007bff;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-    <%- include('../partials/navbar') %>
+<%- include('../partials/header.ejs') %>
 
-    <div class="container">
-        <h1>Edit User</h1>
-        <form action="/admin/users/edit/<%= user._id %>" method="POST">
-            <label for="userId">User ID:</label>
-            <input type="text" id="userId" name="userId" value="<%= user._id %>" readonly>
+<div class="bodyAdmin">
+  <%- include('../partials/navbar.ejs', { user: { role: 'admin', name: 'Admin' } }) %>
 
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" value="<%= user.username %>" required>
+  <div class="container mt-5 pt-5">
+    <!-- Alert -->
+    <div id="alertBox" class="alert d-none position-sticky top-0" style="z-index: 1030" role="alert"></div>
 
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="<%= user.email %>" readonly>
+    <div class="card shadow-sm">
+      <div class="card-header bg-dark text-white">
+        <h4 class="mb-0">Edit User</h4>
+      </div>
+      <div class="card-body">
+        <form id="editUserForm" action="/admin/users/edit/<%= user._id %>" method="POST">
+          <div class="mb-3">
+            <label for="userId" class="form-label fw-semibold">User ID</label>
+            <input type="text" class="form-control" id="userId" name="userId" value="<%= user._id %>" readonly>
+          </div>
 
-            <label for="role">Role:</label>
-            <select id="role" name="role">
-                <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>User</option>
-                <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
+          <div class="mb-3">
+            <label for="username" class="form-label fw-semibold">Username</label>
+            <input type="text" class="form-control" id="username" name="username" value="<%= user.username %>" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label fw-semibold">Email</label>
+            <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>" readonly>
+          </div>
+
+          <div class="mb-4">
+            <label for="role" class="form-label fw-semibold">Role</label>
+            <select id="role" name="role" class="form-select">
+              <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>User</option>
+              <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
             </select>
+          </div>
 
-            <button type="submit">Update User</button>
+          <div class="d-flex justify-content-between">
+            <a href="/admin/manageUser" class="btn btn-outline-secondary">← Back</a>
+            <button type="submit" class="btn btn-primary">Update User</button>
+          </div>
         </form>
-        <a href="/admin/manageUser" class="back-link">Back to User List</a>
+      </div>
     </div>
+  </div>
 
-    <%- include('../partials/footer') %>
-</body>
-</html>
+  <%- include('../partials/footer.ejs') %>
+</div>
+
+<script>
+  // Hiển thị alert
+  function showAlert(type, msg) {
+    const el = document.getElementById('alertBox');
+    el.className = 'alert alert-' + type;
+    el.textContent = msg;
+    el.classList.remove('d-none');
+    setTimeout(() => el.classList.add('d-none'), 2500);
+  }
+
+  // Submit form bằng Fetch (AJAX-style)
+  document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      showAlert('success', 'User updated successfully.');
+      setTimeout(() => (window.location.href = '/admin/manageUser'), 1200);
+    } catch (err) {
+      console.error(err);
+      showAlert('danger', 'Update failed. Please try again.');
+    }
+  });
+</script>

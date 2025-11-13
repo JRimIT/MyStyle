@@ -80,9 +80,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// app.get('/', (req, res) => {
-//     res.render('partials/index');
-// });
 
 /* ───────── Health check ───────── */
 app.get('/healthz', (_req, res) => res.status(200).send('ok'));
@@ -102,7 +99,8 @@ app.use('/', contactRoutes);
 app.use('/api', reviewRouter);
 app.use('/api', categoryRoute);
 app.use('/api', promotionRoute);
-app.use('/vouchers', voucherRoute);
+app.use('/api', voucherRoute);
+app.use('/', voucherRoute);
 app.use('/', wishlistRoute);
 app.use('/', imageProxyRoute);
 app.use('/', adminRoute);

@@ -4,6 +4,37 @@
 <!-- spacer to avoid fixed-top navbar overlay -->
 <div style="height:80px"></div>
 
+<%
+  const checkoutMode =
+    typeof successMode !== "undefined"
+      ? successMode
+      : typeof bankCode !== "undefined" || typeof transNo !== "undefined"
+        ? "payment"
+        : "cod";
+  const headingText =
+    checkoutMode === "cod" ? "Đặt hàng thành công" : "Thanh toán thành công";
+  const subText =
+    checkoutMode === "cod"
+      ? "Đơn hàng của bạn đã được ghi nhận. Chúng tôi sẽ liên hệ giao hàng trong thời gian sớm nhất."
+      : "Cảm ơn bạn đã tin tưởng MyStyle!";
+  const infoText =
+    checkoutMode === "cod"
+      ? "Bạn sẽ thanh toán trực tiếp cho shipper khi nhận hàng. Vui lòng chuẩn bị tiền mặt đúng giá trị đơn."
+      : "Xác nhận đã được gửi tới email (nếu có). Bạn có thể theo dõi trạng thái đơn tại 'Đơn hàng của tôi'.";
+  const amountText =
+    typeof amount !== "undefined" && amount !== null
+      ? `${Number(amount).toLocaleString("vi-VN")} VND`
+      : null;
+  const walletBalanceText =
+    typeof walletBalance !== "undefined" && walletBalance !== null
+      ? `${Number(walletBalance).toLocaleString("vi-VN")} VND`
+      : null;
+  const orderCodeVal = typeof orderCode !== "undefined" ? orderCode : null;
+  const transNoVal = typeof transNo !== "undefined" ? transNo : null;
+  const bankCodeVal = typeof bankCode !== "undefined" ? bankCode : null;
+  const payDateVal = typeof payDate !== "undefined" ? payDate : null;
+%>
+
 <style>
   .success-hero {
     background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
@@ -50,27 +81,27 @@
       <div class="d-inline-block success-icon mb-3">
         <i class="fas fa-check fa-2x"></i>
       </div>
-      <h2 class="mb-1">Thanh toán thành công</h2>
-      <p class="mb-0">Cảm ơn bạn đã tin tưởng MyStyle!</p>
+      <h2 class="mb-1"><%= headingText %></h2>
+      <p class="mb-0"><%= subText %></p>
     </div>
     <div class="card-body p-4 p-md-5 bg-white">
       <div class="meta-grid">
-        <% if (typeof orderCode !== 'undefined') { %>
-          <div class="kv">Mã đơn hàng<br/><strong><%= orderCode %></strong></div>
+        <% if (orderCodeVal) { %>
+          <div class="kv">Mã đơn hàng<br/><strong><%= orderCodeVal %></strong></div>
         <% } %>
-        <% if (typeof amount !== 'undefined') { %>
-          <div class="kv">Số tiền<br/><strong><%= Number(amount).toLocaleString('vi-VN') %> ₫</strong></div>
+        <% if (amountText) { %>
+          <div class="kv">Số tiền<br/><strong><%= amountText %></strong></div>
         <% } %>
-        <% if (transNo) { %>
-          <div class="kv">Mã giao dịch<br/><strong><%= transNo %></strong></div>
+        <% if (transNoVal) { %>
+          <div class="kv">Mã giao dịch<br/><strong><%= transNoVal %></strong></div>
         <% } %>
-        <% if (bankCode) { %>
+        <% if (bankCodeVal) { %>
           <div class="kv">Phương thức/Ngân hàng<br/>
-            <span class="badge badge-bank rounded-pill px-3 py-2"><i class="fas fa-building me-2"></i><%= bankCode %></span>
+            <span class="badge badge-bank rounded-pill px-3 py-2"><i class="fas fa-building me-2"></i><%= bankCodeVal %></span>
           </div>
         <% } %>
-        <% if (payDate) { %>
-          <div class="kv">Thời gian thanh toán<br/><strong><%= payDate %></strong></div>
+        <% if (payDateVal) { %>
+          <div class="kv">Thời gian thanh toán<br/><strong><%= payDateVal %></strong></div>
         <% } %>
       </div>
 
@@ -78,8 +109,16 @@
 
       <div class="bg-soft rounded p-3 small text-muted-2">
         <i class="fas fa-info-circle me-2"></i>
-        Xác nhận đã được gửi tới email (nếu có). Bạn có thể theo dõi trạng thái đơn tại “Đơn hàng của tôi”.
+        <%= infoText %>
       </div>
+      <% if (checkoutMode === "wallet" && amountText) { %>
+        <div class="alert alert-success mt-3 mb-0 small">
+          Ví MyStyle của bạn đã được trừ <strong><%= amountText %></strong>.
+          <% if (walletBalanceText) { %>
+            Số dư còn lại: <strong><%= walletBalanceText %></strong>.
+          <% } %>
+        </div>
+      <% } %>
 
       <div class="d-flex flex-wrap gap-2 gap-md-3 justify-content-center mt-4 btn-wrap">
         <a href="/orders" class="btn btn-primary">

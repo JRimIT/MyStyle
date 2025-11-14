@@ -45,24 +45,38 @@
         </div>
 
         <div class="col-12 mt-2">
-          <h5 class="mb-2">Phương thức thanh toán</h5>
+          <h5 class="mb-2">Phuong th?c thanh to�n</h5>
+          <% const walletBalance = Number((user && user.balance) || 0); %>
+          <% const orderTotal = Number(total || 0); %>
+          <% const canUseWallet = walletBalance >= orderTotal; %>
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="paymentMethod" id=\"pmDirect\" value=\"direct\">
-            <label class="form-check-label" for="pmDirect">VNPay <span class="badge badge-vnp">Thanh toán ngay</span></label>
+            <input class="form-check-input" type="radio" name="paymentMethod" id="pmDirect" value="direct" checked>
+            <label class="form-check-label" for="pmDirect">
+              VNPay <span class="badge badge-vnp">Thanh to�n ngay</span>
+            </label>
           </div>
           <div class="form-check mt-2">
-            <input class="form-check-input" type="radio" name="paymentMethod" id=\"pmCard\" value=\"cardbank\" checked>
-            <label class="form-check-label" for="pmCard">Thẻ/Ngân hàng (Card/Bank)</label>
+            <input class="form-check-input" type="radio" name="paymentMethod" id="pmWallet" value="wallet" <%= canUseWallet ? "" : "disabled" %>>
+            <label class="form-check-label" for="pmWallet">
+              Ví MyStyle
+              <span class="d-block small text-muted">
+                Số dư: <strong><%= walletBalance.toLocaleString("vi-VN") %> VND</strong>
+                <% if (!canUseWallet) { %>
+                  (Số dư chưa đủ để thanh toán đơn hàng này)
+                <% } else { %>
+                  (Đủ để thanh toán toàn bộ)
+                <% } %>
+              </span>
+            </label>
           </div>
-
-          <div id="bankWrap" class="mt-2" style="display:none;">
-            <label class="form-label">Chọn phương thức/ngân hàng (tùy chọn):</label>
-            <select name="bankCode" class="form-select">
-              <option value="INTCARD" selected>INTCARD (VISA/Master/JCB)</option><option value="VNBANK">VNBANK (ATM/IB)</option><option value="VNPAYQR">VNPAYQR (QR Pay)</option><option value="NCB">NCB</option>
-            </select>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="radio" name="paymentMethod" id="pmCod" value="cod">
+            <label class="form-check-label" for="pmCod">
+              Thanh toán khi nhận hàng (COD)
+              <span class="d-block small text-muted">Phù hợp nếu bạn muốn kiểm tra hàng trước khi trả tiền.</span>
+            </label>
           </div>
         </div>
-
         <div class="col-12 text-center mt-3">
           <button type="submit" class="btn btn-primary btn-pay">
             Xác nhận & Thanh toán
@@ -74,14 +88,10 @@
   </div>
 
   <script>
-    // Hiển/ẩn chọn bank khi chọn CardBank
-    const pmCard = document.getElementById('pmCard');
-    const pmDirect = document.getElementById('pmDirect');
-    const bankWrap = document.getElementById('bankWrap');
-    function toggleBank(){ bankWrap.style.display = pmCard.checked ? 'block':'none'; }
-    pmCard.addEventListener('change', toggleBank);
-    pmDirect.addEventListener('change', toggleBank);
-    toggleBank();
+    const walletInput = document.getElementById("pmWallet");
+    if (walletInput && walletInput.disabled) {
+      walletInput.closest(".form-check")?.classList.add("text-muted");
+    }
   </script>
 </div>
 

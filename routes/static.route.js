@@ -1,6 +1,6 @@
 import express from "express";
 import { countProduct } from "../controllers/countCart.js";
-import { verifyUserOrRedirect as verifyUser } from "../config/jwtConfig.js";
+import { verifyUser } from "../config/jwtConfig.js";
 
 const router = express.Router();
 

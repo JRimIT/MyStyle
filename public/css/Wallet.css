@@ -209,6 +209,12 @@
   margin-top: 30px;
 }
 
+.transaction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .transaction-item {
   border-bottom: 1px solid #e0e0e0;
   padding: 20px 0;
@@ -219,6 +225,43 @@
 
 .transaction-item:last-child {
   border-bottom: none;
+}
+
+.tx-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.tx-method {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #6366f1;
+  background: #eef2ff;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.tx-meta {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tx-status {
+  font-weight: 700;
+}
+
+.tx-status-success {
+  color: #16a34a;
+}
+
+.tx-status-failed {
+  color: #dc2626;
 }
 
 .transaction-icon {

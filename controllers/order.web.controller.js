@@ -1,5 +1,3 @@
-// controllers/order.web.controller.js
-
 import Cart from "../models/cart.model.js";
 import Order from "../models/order.model.js";
 import { countProduct } from "./countCart.js";
@@ -210,8 +208,7 @@ export async function createOrderWeb(req, res) {
       },
     });
 
-    /* ===== Trường hợp COD (nếu sau này bạn thêm radio COD) ===== */
-    if (method === "cod") {
+    const clearCartState = async () => {
       data.cart.items = [];
       data.cart.appliedVoucher = {
         voucherId: null,
@@ -220,6 +217,79 @@ export async function createOrderWeb(req, res) {
         freeShipping: false,
       };
       await data.cart.save();
+    };
+
+    /* ===== Trường hợp ví MyStyle ===== */
+    if (method === "wallet") {
+      const User = (await import("../models/user.model.js")).default;
+      const walletUser = await User.findById(userId).select("balance email username");
+      if (!walletUser) {
+        await order.deleteOne();
+        req.session.flash = {
+          type: "error",
+          message: "Không tìm thấy tài khoản để trừ ví.",
+        };
+        return res.redirect("/view/checkout");
+      }
+
+      const currentBalance = Number(walletUser.balance || 0);
+      if (currentBalance < total) {
+        await order.deleteOne();
+        req.session.flash = {
+          type: "error",
+          message: "Số dư ví MyStyle của bạn không đủ để thanh toán.",
+        };
+        return res.redirect("/view/checkout");
+      }
+
+      walletUser.balance = currentBalance - total;
+      await walletUser.save();
+
+      order.status = "paid";
+      order.payment = {
+        ...(order.payment || {}),
+        status: "success",
+        via: "wallet",
+        amount: total,
+        message: "Paid via MyStyle Wallet",
+      };
+      await order.save();
+      await clearCartState();
+
+      if (req.session.user) {
+        req.session.user.balance = walletUser.balance;
+      }
+
+      try {
+        if (walletUser?.email) {
+          const { sendEmail } = await import("../utils/mailer.js");
+          await sendEmail(
+            walletUser.email,
+            "Thanh toán thành công",
+            `<p>Đơn hàng ${order._id} đã được thanh toán thành công bằng ví MyStyle.</p>`
+          );
+        }
+      } catch (emailErr) {
+        console.warn("send mail wallet failed", emailErr?.message);
+      }
+
+      req.session.checkoutSuccess = {
+        successMode: "wallet",
+        orderCode: order._id,
+        amount: total,
+        bankCode: "Ví MyStyle",
+        walletBalance: walletUser.balance,
+      };
+      req.session.flash = {
+        type: "success",
+        message: "Thanh toán bằng ví MyStyle thành công!",
+      };
+      return res.redirect("/view/checkout-success");
+    }
+
+    /* ===== Trường hợp COD (nếu sau này bạn thêm radio COD) ===== */
+    if (method === "cod") {
+      await clearCartState();
 
       try {
         const User = (await import("../models/user.model.js")).default;
@@ -236,6 +306,11 @@ export async function createOrderWeb(req, res) {
         console.warn("send mail COD failed", e?.message);
       }
 
+      req.session.checkoutSuccess = {
+        successMode: "cod",
+        orderCode: order._id,
+        amount: total,
+      };
       req.session.flash = { type: "success", message: "Đặt hàng thành công!" };
       return res.redirect("/view/checkout-success");
     }
@@ -257,26 +332,9 @@ export async function createOrderWeb(req, res) {
     const vnpUrl =
       (process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html").trim();
 
-    const returnUrl = (function () {
-      const envUrl = (process.env.VNP_RETURNURL || "").trim();
-      const isValidEnvUrl = (() => {
-        try {
-          const u = new URL(envUrl);
-          return /^https?:$/i.test(u.protocol) && !!u.host && /\/vnpay\/return$/i.test(u.pathname);
-        } catch {
-          return false;
-        }
-      })();
-
-      if (isValidEnvUrl && !/localhost/i.test(envUrl)) return envUrl;
-
-      const proto = (req.headers["x-forwarded-proto"] || req.protocol || "http").toString();
-      const host = (req.headers["x-forwarded-host"] || req.headers.host || "").toString();
-      if (host) return `${proto}://${host}/vnpay/return`;
-
-      const fallbackPort = Number(process.env.PORT || 4000);
-      return `http://localhost:${fallbackPort}/vnpay/return`;
-    })();
+    // ✅ DÙNG TRỰC TIẾP GIÁ TRỊ TỪ .env (có localhost cũng dùng)
+    const returnUrl =
+      (process.env.VNP_RETURNURL || "http://localhost:4001/vnpay/return").trim();
     console.log("[VNPay] Using ReturnUrl:", returnUrl);
 
     // 7. Chuẩn hoá IP thành IPv4
@@ -515,9 +573,11 @@ export async function vnpayIpn(req, res) {
   }
 }
 
-/* ====== GET /view/checkout-success (COD) ====== */
-export function viewOrderSuccess(_req, res) {
-  return res.render("checkoutSuccess");
+/* ====== GET /view/checkout-success (COD/Wallet) ====== */
+export function viewOrderSuccess(req, res) {
+  const successPayload = req.session.checkoutSuccess || {};
+  delete req.session.checkoutSuccess;
+  return res.render("checkoutSuccess", successPayload);
 }
 
 /* ====== GET /orders/:orderId ====== */
